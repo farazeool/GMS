@@ -34,7 +34,7 @@ include __DIR__ . '/../includes/header.php';
   </div>
   <div class="d-flex gap-2 flex-wrap">
     <a class="btn btn-bb" href="<?= base_url('job_cards/index.php') ?>"><i class="bi bi-plus-lg"></i> New Job Card</a>
-    <a class="btn btn-bb-orange" href="<?= base_url('vehicles/index.php') ?>"><i class="bi bi-car-front"></i> Register Vehicle</a>
+    <a class="btn btn-bb-orange" href="<?= base_url('vehicles/form.php') ?>"><i class="bi bi-car-front"></i> Register Vehicle</a>
     <a class="btn btn-dark" href="<?= base_url('reports/index.php') ?>"><i class="bi bi-graph-up"></i> Generate Report</a>
   </div>
 </div>
