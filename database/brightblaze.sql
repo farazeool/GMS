@@ -9,7 +9,7 @@ CREATE DATABASE IF NOT EXISTS `brightblaze_garage`
 USE `brightblaze_garage`;
 
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS `report_logs`, `service_notes`, `maintenance_records`, `job_cards`, `vehicles`, `customers`, `users`, `roles`;
+DROP TABLE IF EXISTS `settings`, `report_logs`, `service_notes`, `maintenance_records`, `job_cards`, `vehicles`, `customers`, `users`, `roles`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ------------------------------------------------------------
@@ -139,6 +139,13 @@ CREATE TABLE `report_logs` (
   CONSTRAINT `fk_report_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `settings` (
+  `setting_key` VARCHAR(60) NOT NULL,
+  `setting_value` TEXT DEFAULT NULL,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ------------------------------------------------------------
 -- Seed data
 -- All user accounts use the password: password
@@ -196,3 +203,16 @@ INSERT INTO `maintenance_records` (`vehicle_id`, `job_card_id`, `description`, `
 (3, 2,  'General Service: 40,000 km full service', CURDATE(), 45.500, 40120),
 (7, 6,  'Tyres & Alignment: 4 new tyres + alignment', DATE_SUB(CURDATE(), INTERVAL 3 DAY), 320.000, 38500),
 (1, 10, 'General Service: 30,000 km scheduled maintenance', DATE_SUB(CURDATE(), INTERVAL 20 DAY), 38.750, 30210);
+
+INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
+('garage_name',       'BrightBlaze Garage'),
+('business_phone',    '+965 2222 0000'),
+('business_email',    'info@brightblaze.com.kw'),
+('business_address',  'Block 1, Canada Dry Street, Shuwaikh Industrial, Kuwait'),
+('currency',          'KWD'),
+('installation_mode', 'local'),
+('sync_mode',         'local_only'),
+('cloud_api_url',     ''),
+('sync_api_key',      ''),
+('last_sync_at',      ''),
+('sync_status',       'local_only');
