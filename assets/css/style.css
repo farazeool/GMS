@@ -1,0 +1,148 @@
+/* BrightBlaze theme: red, orange, white, dark gray */
+:root {
+  --bb-red: #d62828;
+  --bb-orange: #f77f00;
+  --bb-dark: #2b2d33;
+  --bb-darker: #212226;
+}
+
+body {
+  background: #f5f6f8;
+}
+
+.bb-layout {
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.bb-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  min-height: 100vh;
+  background: var(--bb-dark);
+  color: #fff;
+  position: sticky;
+  top: 0;
+}
+
+.bb-brand {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bb-brand i { color: var(--bb-orange); }
+.bb-brand span { color: var(--bb-red); }
+
+.bb-brand small {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #9aa0a8;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bb-brand-dark { color: var(--bb-dark); }
+.bb-brand-dark small { color: #6c757d; }
+
+.bb-sidebar .nav-link {
+  color: #cfd2d8;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.bb-sidebar .nav-link:hover {
+  background: var(--bb-darker);
+  color: #fff;
+}
+
+.bb-sidebar .nav-link.active {
+  background: linear-gradient(90deg, var(--bb-red), var(--bb-orange));
+  color: #fff;
+}
+
+.bb-user { border-top: 1px solid #3a3d45; }
+
+.bb-role {
+  color: var(--bb-orange);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+/* Cards and stats */
+.card {
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.bb-stat { color: #fff; }
+.bb-stat .bi { font-size: 1.9rem; opacity: 0.85; }
+
+.bg-bb-red { background: var(--bb-red); }
+.bg-bb-orange { background: var(--bb-orange); }
+.bg-bb-dark { background: var(--bb-dark); }
+
+.bb-text-orange { color: var(--bb-orange); }
+
+/* Buttons */
+.btn-bb {
+  background: var(--bb-red);
+  border-color: var(--bb-red);
+  color: #fff;
+}
+
+.btn-bb:hover, .btn-bb:focus {
+  background: #b91f1f;
+  border-color: #b91f1f;
+  color: #fff;
+}
+
+.btn-bb-orange {
+  background: var(--bb-orange);
+  border-color: var(--bb-orange);
+  color: #fff;
+}
+
+.btn-bb-orange:hover, .btn-bb-orange:focus {
+  background: #d96f00;
+  border-color: #d96f00;
+  color: #fff;
+}
+
+/* Status badges */
+.badge.bb-status-pending { background: #6c757d; }
+.badge.bb-status-assigned { background: #0d6efd; }
+.badge.bb-status-in-progress { background: var(--bb-orange); }
+.badge.bb-status-completed { background: #198754; }
+.badge.bb-status-cancelled { background: var(--bb-dark); }
+
+/* Priority badges */
+.badge.bb-priority-low { background: #6c757d; }
+.badge.bb-priority-medium { background: var(--bb-orange); }
+.badge.bb-priority-high { background: var(--bb-red); }
+
+/* Login page */
+.bb-login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bb-dark) 0%, var(--bb-darker) 60%, var(--bb-red) 160%);
+}
+
+.bb-login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 1rem;
+  margin: 1rem;
+}
+
+/* Responsive sidebar */
+@media (max-width: 767.98px) {
+  .bb-layout { flex-direction: column; }
+  .bb-sidebar {
+    width: 100%;
+    min-height: auto;
+    position: static;
+    display: none !important;
+  }
+  .bb-sidebar.bb-open { display: flex !important; }
+}
