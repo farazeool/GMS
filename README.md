@@ -25,6 +25,7 @@ Foundation only:
 2. Start **Apache** and **MySQL** from the XAMPP Control Panel.
 3. Open phpMyAdmin at `http://localhost/phpmyadmin`.
 4. Go to **Import**, choose `database/brightblaze.sql`, and click **Go**. This creates the `brightblaze_garage` database, all tables, and seed data.
+   - **Upgrading an existing install?** Do not re-import. Instead run the scripts in `database/migrations/` (currently `m4_maintenance_updated_at.sql`) via phpMyAdmin > SQL.
 5. If your MySQL credentials differ from the XAMPP defaults (`root` with empty password), edit `config/database.php`.
 6. If you used a folder name other than `brightblaze`, update `BASE_URL` in `config/config.php`.
 7. Open `http://localhost/brightblaze/` in your browser.

@@ -120,6 +120,7 @@ CREATE TABLE `maintenance_records` (
   `cost` DECIMAL(10,3) DEFAULT NULL COMMENT 'Cost in KWD',
   `odometer_km` INT UNSIGNED DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_maintenance_vehicle` (`vehicle_id`),
   KEY `idx_maintenance_job` (`job_card_id`),
