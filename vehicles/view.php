@@ -98,7 +98,7 @@ include __DIR__ . '/../includes/header.php';
               <tbody>
                 <?php foreach ($jobs as $job): ?>
                   <tr>
-                    <td class="fw-semibold"><?= e($job['job_number']) ?></td>
+                    <td class="fw-semibold"><a class="text-decoration-none" href="<?= base_url('job_cards/view.php?id=' . (int) $job['id']) ?>"><?= e($job['job_number']) ?></a></td>
                     <td><?= e($job['service_category']) ?></td>
                     <td><?= e($job['technician_name'] ?? 'Unassigned') ?></td>
                     <td><?= priority_badge($job['priority']) ?></td>

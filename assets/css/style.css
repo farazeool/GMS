@@ -146,3 +146,20 @@ body {
   }
   .bb-sidebar.bb-open { display: flex !important; }
 }
+
+/* Print-friendly job card view */
+@media print {
+  .bb-sidebar,
+  .no-print,
+  .alert,
+  #bbSidebarToggle {
+    display: none !important;
+  }
+  body { background: #fff; }
+  .bb-content { padding: 0 !important; }
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+  }
+}

@@ -40,7 +40,7 @@ function render_job_list(array $jobs, string $empty): void
     foreach ($jobs as $job) {
         echo '<li class="list-group-item px-0">';
         echo '<div class="d-flex justify-content-between align-items-start gap-2">';
-        echo '<div><span class="fw-semibold">' . e($job['job_number']) . '</span><br>';
+        echo '<div><a class="fw-semibold text-decoration-none" href="' . base_url('job_cards/view.php?id=' . (int) $job['id']) . '">' . e($job['job_number']) . '</a><br>';
         echo '<span class="small">' . e($job['make'] . ' ' . $job['model']) . ' · ' . e($job['plate_number']) . '</span><br>';
         echo '<span class="small text-muted">' . e($job['service_category']) . ' — ' . e($job['customer_name']) . '</span></div>';
         echo '<div class="text-end">' . priority_badge($job['priority']) . '<br><span class="small text-muted">Due ' . e(format_date($job['estimated_completion'])) . '</span></div>';
@@ -77,7 +77,7 @@ function render_job_list(array $jobs, string $empty): void
 </div>
 
 <div class="alert alert-light border mt-4 small mb-0">
-  <i class="bi bi-info-circle"></i> Status updates and service notes will be available in the <strong>Job Cards</strong> module (next phase).
+  <i class="bi bi-info-circle"></i> Open a job card to update its status and add service notes.
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
