@@ -47,6 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($settings['sync_api_key'] === '') {
             $errors[] = 'A Sync API Key is required when online sync is enabled.';
         }
+    } else {
+        // Cloud fields are disabled in Local Only mode and submit empty;
+        // keep the previously stored values instead of wiping them.
+        $stored = get_settings();
+        $settings['cloud_api_url'] = $stored['cloud_api_url'];
+        $settings['sync_api_key']  = $stored['sync_api_key'];
     }
 
     if (!$errors) {
@@ -57,19 +63,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $settings['sync_status'] = 'configured_pending';
         }
 
-        save_settings([
-            'garage_name'       => $settings['garage_name'],
-            'business_phone'    => $settings['business_phone'],
-            'business_email'    => $settings['business_email'],
-            'business_address'  => $settings['business_address'],
-            'currency'          => $settings['currency'],
-            'installation_mode' => $settings['installation_mode'],
-            'sync_mode'         => $settings['sync_mode'],
-            'cloud_api_url'     => $settings['cloud_api_url'],
-            'sync_api_key'      => $settings['sync_api_key'],
-            'sync_status'       => $settings['sync_status'],
-        ]);
-        set_flash('success', 'System settings saved.');
+        try {
+            save_settings([
+                'garage_name'       => $settings['garage_name'],
+                'business_phone'    => $settings['business_phone'],
+                'business_email'    => $settings['business_email'],
+                'business_address'  => $settings['business_address'],
+                'currency'          => $settings['currency'],
+                'installation_mode' => $settings['installation_mode'],
+                'sync_mode'         => $settings['sync_mode'],
+                'cloud_api_url'     => $settings['cloud_api_url'],
+                'sync_api_key'      => $settings['sync_api_key'],
+                'sync_status'       => $settings['sync_status'],
+            ]);
+            set_flash('success', 'System settings saved.');
+        } catch (PDOException $e) {
+            set_flash('danger', 'Settings could not be saved. Run database/migrations/m5_settings.sql in phpMyAdmin, then try again.');
+        }
         header('Location: ' . base_url('admin/settings.php'));
         exit;
     }
