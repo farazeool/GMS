@@ -7,16 +7,88 @@ require_role('admin');
 $page_title = 'Customers';
 $active = 'customers';
 
+$q = trim($_GET['q'] ?? '');
+
+$sql = "SELECT c.*, (SELECT COUNT(*) FROM vehicles v WHERE v.customer_id = c.id) AS vehicle_count
+        FROM customers c";
+$params = [];
+if ($q !== '') {
+    $sql .= ' WHERE c.name LIKE ? OR c.phone LIKE ? OR c.email LIKE ?';
+    $like = '%' . $q . '%';
+    $params = [$like, $like, $like];
+}
+$sql .= ' ORDER BY c.created_at DESC';
+
+$stmt = db()->prepare($sql);
+$stmt->execute($params);
+$customers = $stmt->fetchAll();
+
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<h4 class="fw-bold mb-4">Customers</h4>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h4 class="fw-bold mb-0">Customers <span class="badge text-bg-secondary fs-6"><?= count($customers) ?></span></h4>
+  <a class="btn btn-bb" href="<?= base_url('customers/form.php') ?>"><i class="bi bi-person-plus"></i> Add Customer</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form class="row g-2" method="get" action="<?= base_url('customers/index.php') ?>">
+      <div class="col-md-6 col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Search by name, phone, or email">
+        </div>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-bb-orange" type="submit">Search</button>
+        <?php if ($q !== ''): ?>
+          <a class="btn btn-outline-secondary" href="<?= base_url('customers/index.php') ?>">Clear</a>
+        <?php endif; ?>
+      </div>
+    </form>
+  </div>
+</div>
 
 <div class="card">
-  <div class="card-body text-center py-5">
-    <i class="bi bi-people display-4 bb-text-orange"></i>
-    <h5 class="mt-3">Customer Management</h5>
-    <p class="text-muted mb-0">Add, edit, delete, and search customers. This module will be built in the next phase.</p>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th><th>Phone</th><th>Email</th><th>Vehicles</th><th>Created</th><th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (!$customers): ?>
+            <tr><td colspan="6" class="text-center text-muted py-4">
+              <?= $q !== '' ? 'No customers match your search.' : 'No customers yet. Click “Add Customer” to create the first one.' ?>
+            </td></tr>
+          <?php endif; ?>
+          <?php foreach ($customers as $c): ?>
+            <tr>
+              <td class="fw-semibold"><a class="text-decoration-none" href="<?= base_url('customers/view.php?id=' . (int) $c['id']) ?>"><?= e($c['name']) ?></a></td>
+              <td><?= e($c['phone']) ?></td>
+              <td><?= e($c['email'] ?? '') ?: '<span class="text-muted">—</span>' ?></td>
+              <td><span class="badge text-bg-secondary"><?= (int) $c['vehicle_count'] ?></span></td>
+              <td class="text-muted small"><?= format_date($c['created_at']) ?></td>
+              <td class="text-end text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('customers/view.php?id=' . (int) $c['id']) ?>" title="View"><i class="bi bi-eye"></i></a>
+                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('customers/form.php?id=' . (int) $c['id']) ?>" title="Edit"><i class="bi bi-pencil"></i></a>
+                <form class="d-inline" method="post" action="<?= base_url('customers/delete.php') ?>">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
+                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete"
+                          data-confirm="Delete customer <?= e($c['name']) ?>? This will also delete their vehicles and job history.">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

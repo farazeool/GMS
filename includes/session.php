@@ -9,6 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/csrf.php';
 
 function is_logged_in(): bool
 {
