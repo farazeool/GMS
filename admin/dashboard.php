@@ -13,7 +13,7 @@ $completed     = (int) db()->query("SELECT COUNT(*) FROM job_cards WHERE status 
 $pending       = (int) db()->query("SELECT COUNT(*) FROM job_cards WHERE status = 'Pending'")->fetchColumn();
 
 $recentJobs = db()->query(
-    "SELECT jc.job_number, jc.service_category, jc.priority, jc.status, jc.created_at,
+    "SELECT jc.id, jc.job_number, jc.service_category, jc.priority, jc.status, jc.created_at,
             c.name AS customer_name, v.plate_number, v.make, v.model,
             u.full_name AS technician_name
      FROM job_cards jc
@@ -33,7 +33,7 @@ include __DIR__ . '/../includes/header.php';
     <span class="text-muted small">Welcome back, <?= e(current_user_name()) ?></span>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    <a class="btn btn-bb" href="<?= base_url('job_cards/index.php') ?>"><i class="bi bi-plus-lg"></i> New Job Card</a>
+    <a class="btn btn-bb" href="<?= base_url('job_cards/form.php') ?>"><i class="bi bi-plus-lg"></i> New Job Card</a>
     <a class="btn btn-bb-orange" href="<?= base_url('vehicles/form.php') ?>"><i class="bi bi-car-front"></i> Register Vehicle</a>
     <a class="btn btn-dark" href="<?= base_url('reports/index.php') ?>"><i class="bi bi-graph-up"></i> Generate Report</a>
   </div>
@@ -83,7 +83,7 @@ include __DIR__ . '/../includes/header.php';
           <?php endif; ?>
           <?php foreach ($recentJobs as $job): ?>
             <tr>
-              <td class="fw-semibold"><?= e($job['job_number']) ?></td>
+              <td class="fw-semibold"><a class="text-decoration-none" href="<?= base_url('job_cards/view.php?id=' . (int) $job['id']) ?>"><?= e($job['job_number']) ?></a></td>
               <td><?= e($job['customer_name']) ?></td>
               <td><?= e($job['make'] . ' ' . $job['model']) ?> <span class="text-muted small">(<?= e($job['plate_number']) ?>)</span></td>
               <td><?= e($job['service_category']) ?></td>
