@@ -9,7 +9,7 @@ CREATE DATABASE IF NOT EXISTS `brightblaze_garage`
 USE `brightblaze_garage`;
 
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS `settings`, `report_logs`, `service_notes`, `maintenance_records`, `job_cards`, `vehicles`, `customers`, `users`, `roles`;
+DROP TABLE IF EXISTS `sync_logs`, `settings`, `report_logs`, `service_notes`, `maintenance_records`, `job_cards`, `vehicles`, `customers`, `users`, `roles`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ------------------------------------------------------------
@@ -49,6 +49,9 @@ CREATE TABLE `customers` (
   `address` VARCHAR(255) DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `sync_status` ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending',
+  `synced_at` DATETIME DEFAULT NULL,
+  `local_updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_customers_name` (`name`),
   KEY `idx_customers_phone` (`phone`)
@@ -65,6 +68,9 @@ CREATE TABLE `vehicles` (
   `vin` VARCHAR(30) DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `sync_status` ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending',
+  `synced_at` DATETIME DEFAULT NULL,
+  `local_updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_vehicles_plate` (`plate_number`),
   UNIQUE KEY `uq_vehicles_vin` (`vin`),
@@ -86,6 +92,9 @@ CREATE TABLE `job_cards` (
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `completed_at` DATETIME DEFAULT NULL,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `sync_status` ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending',
+  `synced_at` DATETIME DEFAULT NULL,
+  `local_updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_job_cards_number` (`job_number`),
   KEY `idx_job_cards_status` (`status`),
@@ -104,6 +113,9 @@ CREATE TABLE `service_notes` (
   `user_id` INT UNSIGNED DEFAULT NULL,
   `note` TEXT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `sync_status` ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending',
+  `synced_at` DATETIME DEFAULT NULL,
+  `local_updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_service_notes_job` (`job_card_id`),
   KEY `idx_service_notes_user` (`user_id`),
@@ -121,6 +133,9 @@ CREATE TABLE `maintenance_records` (
   `odometer_km` INT UNSIGNED DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `sync_status` ENUM('pending','synced','failed') NOT NULL DEFAULT 'pending',
+  `synced_at` DATETIME DEFAULT NULL,
+  `local_updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_maintenance_vehicle` (`vehicle_id`),
   KEY `idx_maintenance_job` (`job_card_id`),
@@ -144,6 +159,19 @@ CREATE TABLE `settings` (
   `setting_value` TEXT DEFAULT NULL,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `sync_logs` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `level` VARCHAR(20) NOT NULL,
+  `message` VARCHAR(500) NOT NULL,
+  `context_json` TEXT DEFAULT NULL,
+  `created_by` INT UNSIGNED DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_sync_logs_created_at` (`created_at`),
+  KEY `idx_sync_logs_created_by` (`created_by`),
+  CONSTRAINT `fk_sync_logs_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------

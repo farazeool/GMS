@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/job_helpers.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -128,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $job['customer_id'], $job['vehicle_id'], $job['service_category'], $technicianId,
                 $job['priority'], $job['status'], $job['problem_description'], $estimated, $completedAt, $id,
             ]);
+            sync_mark_record_dirty('job_cards', $id);
 
             if ($job['status'] === 'Completed') {
                 sync_completion_maintenance($id);
@@ -149,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $job['priority'], $job['status'], $job['problem_description'], $estimated,
             ]);
             $id = (int) db()->lastInsertId();
+            sync_mark_record_dirty('job_cards', $id);
             set_flash('success', 'Job card ' . $jobNumber . ' created successfully.');
         }
 

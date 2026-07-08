@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/settings_helpers.php';
 
 if (is_logged_in()) {
     header('Location: ' . base_url(is_admin() ? 'admin/dashboard.php' : 'technician/dashboard.php'));
@@ -46,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign in · BrightBlaze Garage</title>
+  <title>Sign in · <?= e(app_brand_name()) ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link href="<?= base_url('assets/css/style.css') ?>" rel="stylesheet">
@@ -56,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card-body p-4 p-md-5">
       <div class="bb-brand bb-brand-dark text-center mb-4">
         <i class="bi bi-fire"></i> Bright<span>Blaze</span>
-        <small class="d-block">Garage Management &amp; Job Card System</small>
+        <small class="d-block"><?= e(app_brand_name()) ?></small>
       </div>
       <?php if ($error !== ''): ?>
         <div class="alert alert-danger py-2"><?= e($error) ?></div>

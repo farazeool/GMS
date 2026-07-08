@@ -4,6 +4,8 @@
  * Require after config/config.php and includes/session.php.
  */
 
+require_once __DIR__ . '/sync_helpers.php';
+
 const JOB_STATUSES   = ['Pending', 'Assigned', 'In Progress', 'Completed', 'Cancelled'];
 const JOB_PRIORITIES = ['Low', 'Medium', 'High'];
 const SERVICE_CATEGORIES = [
@@ -121,10 +123,12 @@ function apply_status_change(array $job, string $newStatus): ?string
     if ($newStatus === 'Completed') {
         $stmt = db()->prepare('UPDATE job_cards SET status = ?, completed_at = COALESCE(completed_at, NOW()) WHERE id = ?');
         $stmt->execute([$newStatus, $job['id']]);
+        sync_mark_record_dirty('job_cards', (int) $job['id']);
         sync_completion_maintenance((int) $job['id']);
     } else {
         $stmt = db()->prepare('UPDATE job_cards SET status = ?, completed_at = NULL WHERE id = ?');
         $stmt->execute([$newStatus, $job['id']]);
+        sync_mark_record_dirty('job_cards', (int) $job['id']);
         if (($job['status'] ?? '') === 'Completed') {
             $stmt = db()->prepare('DELETE FROM maintenance_records WHERE job_card_id = ?');
             $stmt->execute([$job['id']]);
@@ -153,8 +157,10 @@ function sync_completion_maintenance(int $jobId): void
     if ($existing) {
         $stmt = db()->prepare('UPDATE maintenance_records SET description = ?, service_date = CURDATE() WHERE id = ?');
         $stmt->execute([$description, $existing['id']]);
+        sync_mark_record_dirty('maintenance_records', (int) $existing['id']);
     } else {
         $stmt = db()->prepare('INSERT INTO maintenance_records (vehicle_id, job_card_id, description, service_date) VALUES (?, ?, ?, CURDATE())');
         $stmt->execute([$job['vehicle_id'], $jobId, $description]);
+        sync_mark_record_dirty('maintenance_records', (int) db()->lastInsertId());
     }
 }

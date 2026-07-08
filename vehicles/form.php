@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -101,11 +102,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $params[] = $id;
             $stmt = db()->prepare('UPDATE vehicles SET customer_id = ?, plate_number = ?, make = ?, model = ?, year = ?, color = ?, vin = ? WHERE id = ?');
             $stmt->execute($params);
+            sync_mark_record_dirty('vehicles', $id);
             set_flash('success', 'Vehicle updated successfully.');
         } else {
             $stmt = db()->prepare('INSERT INTO vehicles (customer_id, plate_number, make, model, year, color, vin) VALUES (?, ?, ?, ?, ?, ?, ?)');
             $stmt->execute($params);
             $id = (int) db()->lastInsertId();
+            sync_mark_record_dirty('vehicles', $id);
             set_flash('success', 'Vehicle registered successfully.');
         }
         header('Location: ' . base_url('vehicles/view.php?id=' . $id));

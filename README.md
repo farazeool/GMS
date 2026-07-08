@@ -1,64 +1,146 @@
 # BrightBlaze – Garage Management & Job Card System
 
-A full-stack garage management system for a Kuwait-based garage, built with **plain PHP**, **MySQL**, **Bootstrap 5**, and **JavaScript**. Designed to run locally on **XAMPP**.
+BrightBlaze is a **PHP + MySQL** garage operations system for local workshop use, designed for **XAMPP/MAMP/Laragon-style local server setups**.
 
-## Phase 1 (this branch)
+## Current Milestone Status
 
-Foundation only:
+- ✅ Milestone 1–5 core modules (auth, RBAC, dashboards, customers, vehicles, job cards, notes, maintenance, reports, users, settings)
+- ✅ Milestone 6 polish/documentation updates
+- ✅ Milestone 7 basic real sync-ready architecture (offline-first, manual sync, sync logs)
+- ✅ Milestone 8 Windows packaging guidance (`PACKAGING.md`)
 
-- XAMPP-compatible folder structure
-- MySQL database schema + realistic Kuwait seed data (`database/brightblaze.sql`)
-- PDO database connection (`config/database.php`)
-- Login / logout with PHP sessions (`auth/`)
-- Role-based access control (admin, technician)
-- Admin dashboard shell with live stats (`admin/dashboard.php`)
-- Technician dashboard shell (`technician/dashboard.php`)
-- Module placeholders for the next phases (customers, vehicles, job cards, maintenance, reports, users)
+## Key Features
 
-## Requirements
+- Login/logout with role-based access (admin, technician)
+- Admin dashboard + technician dashboard
+- Customer management
+- Vehicle registry
+- Job card lifecycle + technician assignment
+- Technician workflow controls + service notes
+- Maintenance records
+- Reports + CSV export
+- Users & Roles management
+- System Settings (garage profile, installation mode, sync mode)
+- Sync Dashboard (manual sync + sync logs)
 
-- [XAMPP](https://www.apachefriends.org/) with PHP 8.0+ and MySQL/MariaDB
+## Tech Stack
 
-## Setup on XAMPP
+- PHP (plain, no framework)
+- MySQL/MariaDB
+- Bootstrap 5
+- JavaScript
+- phpMyAdmin-compatible SQL
 
-1. Copy this project folder into `C:\xampp\htdocs\brightblaze` (Windows) or `/opt/lampp/htdocs/brightblaze` (Linux).
-2. Start **Apache** and **MySQL** from the XAMPP Control Panel.
-3. Open phpMyAdmin at `http://localhost/phpmyadmin`.
-4. Go to **Import**, choose `database/brightblaze.sql`, and click **Go**. This creates the `brightblaze_garage` database, all tables, and seed data.
-   - **Upgrading an existing install?** Do not re-import. Instead run the scripts in `database/migrations/` in order (`m4_maintenance_updated_at.sql`, then `m5_settings.sql`) via phpMyAdmin > SQL.
-5. If your MySQL credentials differ from the XAMPP defaults (`root` with empty password), edit `config/database.php`.
-6. If you used a folder name other than `brightblaze`, update `BASE_URL` in `config/config.php`.
-7. Open `http://localhost/brightblaze/` in your browser.
+---
 
-## Default logins
+## Setup (XAMPP)
 
-All seeded accounts use the password: `password`
+1. Copy project to:
+   - Windows: `C:\xampp\htdocs\brightblaze`
+   - Linux: `/opt/lampp/htdocs/brightblaze`
+2. Start **Apache** and **MySQL**.
+3. Open `http://localhost/phpmyadmin`.
+4. Import:
+   - `/home/runner/work/GMS/GMS/database/brightblaze.sql`
+5. For existing installs (upgrade path), run migrations in order:
+   - `/home/runner/work/GMS/GMS/database/migrations/m4_maintenance_updated_at.sql`
+   - `/home/runner/work/GMS/GMS/database/migrations/m5_settings.sql`
+   - `/home/runner/work/GMS/GMS/database/migrations/m6_sync_engine.sql`
+6. If your DB credentials differ from defaults, edit:
+   - `/home/runner/work/GMS/GMS/config/database.php`
+7. If folder name is not `brightblaze`, edit:
+   - `/home/runner/work/GMS/GMS/config/config.php` (`BASE_URL`)
+8. Open:
+   - `http://localhost/brightblaze/`
 
-| Username | Role       | Name             |
-|----------|------------|------------------|
-| admin    | Admin      | Yousef Al-Mutairi|
-| hamad    | Technician | Hamad Al-Enezi   |
-| rajesh   | Technician | Rajesh Kumar     |
-| joseph   | Technician | Joseph Mathew    |
+## Setup (MAMP)
 
-> **Important:** change these passwords before real use. You can generate a new hash with `http://localhost/brightblaze/database/hash_password.php?password=YourNewPassword` and paste it into the `users.password_hash` column in phpMyAdmin. Delete `hash_password.php` in production.
+1. Copy project to your MAMP htdocs folder (commonly `/Applications/MAMP/htdocs/brightblaze`).
+2. Start servers in MAMP.
+3. Import `/home/runner/work/GMS/GMS/database/brightblaze.sql` in phpMyAdmin.
+4. Update `/home/runner/work/GMS/GMS/config/database.php` with MAMP DB credentials/port if required.
+5. Update `BASE_URL` in `/home/runner/work/GMS/GMS/config/config.php` if folder name differs.
+6. Open local URL from MAMP (commonly `http://localhost:8888/brightblaze/`).
 
-## Folder structure
+---
 
-```
-brightblaze/
-├── admin/           Admin dashboard + system settings
-├── assets/css/      BrightBlaze theme
-├── assets/js/       Shared JavaScript
-├── auth/            Login / logout
-├── config/          App config + PDO connection
-├── customers/       Customer management (next phase)
-├── database/        SQL schema + seed data
-├── includes/        Session, RBAC, layout partials
-├── job_cards/       Job card management (next phase)
-├── maintenance/     Maintenance records (next phase)
-├── reports/         Reports (next phase)
-├── technician/      Technician dashboard
-├── users/           Users & roles (next phase)
-└── index.php        Entry point (role-based redirect)
-```
+## Demo Login Credentials
+
+All seeded demo users use password: `password`
+
+| Username | Role | Name |
+|---|---|---|
+| admin | Admin | Yousef Al-Mutairi |
+| hamad | Technician | Hamad Al-Enezi |
+| rajesh | Technician | Rajesh Kumar |
+| joseph | Technician | Joseph Mathew |
+
+> Change all demo passwords before any real deployment.
+
+---
+
+## Sync Engine (Milestone 7)
+
+- System always works offline first.
+- Sync is **manual** from Admin → Sync Dashboard.
+- Sync reads Cloud API URL + Sync API Key from System Settings.
+- If cloud config is missing, system stays Local Only.
+- Sync attempts a real HTTP API call; on failure, records are marked failed and a safe log is stored.
+- API keys are never shown in plain text after save.
+
+### Synced entities
+
+- customers
+- vehicles
+- job_cards
+- service_notes
+- maintenance_records
+
+---
+
+## Security Notes
+
+- Deactivated users are blocked on their next request.
+- CSRF tokens are enforced for POST forms.
+- Passwords use `password_hash` / `password_verify`.
+- `/home/runner/work/GMS/GMS/database/hash_password.php` is now **CLI-only**.
+
+---
+
+## Screenshots Placeholders
+
+Add screenshots under:
+- `/home/runner/work/GMS/GMS/docs/screenshots/`
+
+Suggested file names:
+- `01-login.png`
+- `02-admin-dashboard.png`
+- `03-technician-dashboard.png`
+- `04-job-card-view.png`
+- `05-reports.png`
+- `06-system-settings.png`
+- `07-sync-dashboard.png`
+
+---
+
+## Documentation Index
+
+- `/home/runner/work/GMS/GMS/COMPLETION_AUDIT.md`
+- `/home/runner/work/GMS/GMS/TESTING.md`
+- `/home/runner/work/GMS/GMS/PROJECT_REPORT_SUMMARY.md`
+- `/home/runner/work/GMS/GMS/PACKAGING.md`
+
+---
+
+## Portfolio / CV Explanation
+
+This project demonstrates practical full-stack delivery in a non-framework PHP environment:
+
+- role-based business workflows
+- secure session/auth handling
+- relational data modeling and migrations
+- reporting and exports
+- offline-first architecture with sync readiness
+- deployment-focused documentation
+
+It is suitable as a portfolio/CV project for showcasing applied software engineering in small-business operations systems.

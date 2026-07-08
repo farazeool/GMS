@@ -9,11 +9,13 @@ function bb_nav_item(string $key, string $href, string $icon, string $label): vo
     $class = (isset($active) && $active === $key) ? ' active' : '';
     echo '<a class="nav-link' . $class . '" href="' . base_url($href) . '"><i class="bi ' . $icon . '"></i> ' . $label . '</a>' . PHP_EOL;
 }
+require_once __DIR__ . '/settings_helpers.php';
+$brandName = app_brand_name();
 ?>
 <aside class="bb-sidebar d-flex flex-column p-3">
   <div class="bb-brand mb-4">
     <i class="bi bi-fire"></i> Bright<span>Blaze</span>
-    <small class="d-block">Garage Management</small>
+    <small class="d-block"><?= e($brandName) ?></small>
   </div>
   <nav class="nav flex-column gap-1">
     <?php if (is_admin()): ?>
@@ -25,6 +27,7 @@ function bb_nav_item(string $key, string $href, string $icon, string $label): vo
       bb_nav_item('maintenance', 'maintenance/index.php', 'bi-tools', 'Maintenance Records');
       bb_nav_item('reports', 'reports/index.php', 'bi-graph-up', 'Reports');
       bb_nav_item('users', 'users/index.php', 'bi-person-gear', 'Users &amp; Roles');
+      bb_nav_item('sync', 'admin/sync.php', 'bi-arrow-repeat', 'Sync Dashboard');
       bb_nav_item('settings', 'admin/settings.php', 'bi-gear', 'System Settings');
       ?>
     <?php else: ?>
@@ -41,6 +44,9 @@ function bb_nav_item(string $key, string $href, string $icon, string $label): vo
     </div>
     <a class="btn btn-sm btn-outline-light mt-2 w-100" href="<?= base_url('auth/logout.php') ?>">
       <i class="bi bi-box-arrow-right"></i> Sign out
+    </a>
+    <a class="btn btn-sm btn-outline-light mt-2 w-100" href="<?= base_url('auth/change_password.php') ?>">
+      <i class="bi bi-key"></i> Change Password
     </a>
   </div>
 </aside>

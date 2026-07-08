@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $record['odometer_km'] !== null ? (int) $record['odometer_km'] : null,
             $id,
         ]);
+        sync_mark_record_dirty('maintenance_records', $id);
         set_flash('success', 'Maintenance record updated successfully.');
         header('Location: ' . base_url('maintenance/view.php?id=' . $id));
         exit;

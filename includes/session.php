@@ -45,6 +45,34 @@ function require_login(): void
         header('Location: ' . base_url('auth/login.php'));
         exit;
     }
+
+    $stmt = db()->prepare(
+        'SELECT u.id, u.full_name, u.username, u.is_active, r.name AS role_name
+         FROM users u
+         JOIN roles r ON r.id = u.role_id
+         WHERE u.id = ?
+         LIMIT 1'
+    );
+    $stmt->execute([current_user_id()]);
+    $user = $stmt->fetch();
+
+    if (!$user || (int) $user['is_active'] !== 1) {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
+        session_destroy();
+        session_start();
+        set_flash('warning', 'Your account is inactive. Please contact an administrator.');
+        header('Location: ' . base_url('auth/login.php'));
+        exit;
+    }
+
+    // Keep session claims aligned with current DB state.
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['role'] = $user['role_name'];
 }
 
 /**

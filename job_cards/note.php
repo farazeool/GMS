@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/job_helpers.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_login();
 
@@ -34,6 +35,7 @@ if ($note === '') {
 } else {
     $stmt = db()->prepare('INSERT INTO service_notes (job_card_id, user_id, note) VALUES (?, ?, ?)');
     $stmt->execute([$id, current_user_id(), $note]);
+    sync_mark_record_dirty('service_notes', (int) db()->lastInsertId());
     set_flash('success', 'Service note added.');
 }
 

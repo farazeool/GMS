@@ -68,3 +68,9 @@ function save_settings(array $pairs): void
         $stmt->execute([$key, $value]);
     }
 }
+
+function app_brand_name(): string
+{
+    $name = trim(get_setting('garage_name', APP_NAME));
+    return $name !== '' ? $name : APP_NAME;
+}

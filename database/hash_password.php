@@ -2,19 +2,25 @@
 /**
  * Development helper: generate a bcrypt hash compatible with password_verify().
  *
- * Usage (browser): http://localhost/brightblaze/database/hash_password.php?password=YourNewPassword
- * Usage (CLI):     php hash_password.php YourNewPassword
+ * Usage (CLI only): php hash_password.php YourNewPassword
  *
- * Paste the resulting hash into the users.password_hash column in phpMyAdmin.
- * DELETE THIS FILE in production.
+ * Paste the resulting hash into the users.password_hash column if needed.
+ * DELETE THIS FILE in production builds.
  */
 
-$password = PHP_SAPI === 'cli' ? ($argv[1] ?? '') : ($_GET['password'] ?? '');
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Forbidden. This helper is CLI-only for local development.\n";
+    exit;
+}
+
+$password = $argv[1] ?? '';
 
 header('Content-Type: text/plain; charset=utf-8');
 
 if ($password === '') {
-    echo "Provide a password, e.g. ?password=MySecret123 or: php hash_password.php MySecret123\n";
+    echo "Provide a password, e.g.: php hash_password.php MySecret123\n";
     exit;
 }
 

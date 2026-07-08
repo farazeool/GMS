@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/settings_helpers.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -22,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings['installation_mode'] = $_POST['installation_mode'] ?? 'local';
     $settings['sync_mode']         = $_POST['sync_mode'] ?? 'local_only';
     $settings['cloud_api_url']     = trim($_POST['cloud_api_url'] ?? '');
-    $settings['sync_api_key']      = trim($_POST['sync_api_key'] ?? '');
+    $newSyncApiKey                 = trim($_POST['sync_api_key'] ?? '');
 
     if ($settings['garage_name'] === '') {
         $errors[] = 'Garage/business name is required.';
@@ -40,27 +41,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Please select a valid sync mode.';
     }
 
+    $stored = get_settings();
+
     if ($settings['sync_mode'] === 'online_sync') {
         if ($settings['cloud_api_url'] === '' || !filter_var($settings['cloud_api_url'], FILTER_VALIDATE_URL)) {
             $errors[] = 'A valid Cloud API URL is required when online sync is enabled.';
         }
-        if ($settings['sync_api_key'] === '') {
+        if ($newSyncApiKey === '' && $stored['sync_api_key'] === '') {
             $errors[] = 'A Sync API Key is required when online sync is enabled.';
         }
+        $settings['sync_api_key'] = $newSyncApiKey !== '' ? $newSyncApiKey : $stored['sync_api_key'];
     } else {
         // Cloud fields are disabled in Local Only mode and submit empty;
         // keep the previously stored values instead of wiping them.
-        $stored = get_settings();
         $settings['cloud_api_url'] = $stored['cloud_api_url'];
         $settings['sync_api_key']  = $stored['sync_api_key'];
     }
 
     if (!$errors) {
-        // Derive sync status; the sync engine itself arrives in a future milestone.
         if ($settings['sync_mode'] === 'local_only') {
             $settings['sync_status'] = 'local_only';
         } else {
-            $settings['sync_status'] = 'configured_pending';
+            $settings['sync_status'] = 'ready';
         }
 
         try {
@@ -88,7 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $syncStatusLabels = [
     'not_configured'     => ['text-bg-secondary', 'Not configured'],
     'local_only'         => ['bg-bb-dark', 'Local Only'],
-    'configured_pending' => ['text-bg-warning', 'Configured – sync engine coming in a future update'],
+    'ready'              => ['text-bg-info', 'Ready to sync'],
+    'synced'             => ['text-bg-success', 'Synced'],
+    'synced_idle'        => ['text-bg-success', 'Synced (no pending records)'],
+    'failed'             => ['text-bg-danger', 'Failed (check Sync Dashboard)'],
 ];
 $statusInfo = $syncStatusLabels[$settings['sync_status']] ?? $syncStatusLabels['not_configured'];
 
@@ -147,7 +152,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="card-header bg-white fw-bold"><i class="bi bi-cloud-arrow-up"></i> Installation &amp; Sync</div>
         <div class="card-body">
           <div class="alert alert-light border small">
-            <i class="bi bi-info-circle"></i> Online backup/sync is planned for a future update. These settings prepare the system for it; no data leaves this installation yet.
+            <i class="bi bi-info-circle"></i> Offline mode always works. Online sync uses the Sync Dashboard and only runs when Cloud API settings are valid.
           </div>
           <div class="row g-3">
             <div class="col-md-6">
@@ -172,7 +177,8 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div class="col-12">
               <label class="form-label" for="sync_api_key">Sync API Key</label>
-              <input class="form-control" type="password" id="sync_api_key" name="sync_api_key" value="<?= e($settings['sync_api_key']) ?>" maxlength="255" autocomplete="off">
+              <input class="form-control" type="password" id="sync_api_key" name="sync_api_key" value="" maxlength="255" autocomplete="new-password" placeholder="Enter a new key only when rotating">
+              <div class="form-text">Saved key: <?= e(sync_masked_key($settings['sync_api_key'])) ?>. For security, the full key is never shown.</div>
             </div>
             <div class="col-md-6">
               <label class="form-label">Last Sync</label>
