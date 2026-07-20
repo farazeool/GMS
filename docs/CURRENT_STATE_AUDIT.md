@@ -9,7 +9,7 @@
 - Technician dashboard with assigned, in-progress, and recently completed work.
 - Customer management with create, edit, view, search, and delete flows.
 - Vehicle registry tied to customers, including history views for job cards and maintenance records.
-- Job card workflow with assignment, status changes, service notes, completion checks, and automatic maintenance record syncing.
+- Job card workflow with assignment, status changes, service notes, completion checks, and automatic maintenance record generation.
 - Maintenance record browsing, detail, and edit flows.
 - Reporting with filters, summary metrics, printable views, and CSV export.
 - User management with create/edit flows, password reset, activation toggles, and lockout protection for the last active admin.

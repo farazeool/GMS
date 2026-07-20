@@ -24,7 +24,7 @@ BrightBlaze is a monolithic, XAMPP-friendly PHP application backed by MySQL/Mari
 
 - Authentication and authorization are handled through session state and role checks.
 - Customer and vehicle records are the master data that anchor job cards and maintenance records.
-- Job cards are the primary operational workflow and drive service notes, completion logic, and maintenance syncing.
+- Job cards are the primary operational workflow and drive service notes, completion logic, and maintenance record generation.
 - Maintenance records summarize completed work and can be reviewed and edited independently.
 - Reports are generated from job-card data with filter support and CSV export.
 - Settings store garage profile data and sync placeholders for a future offline/cloud design.

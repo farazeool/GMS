@@ -82,14 +82,14 @@ brightblaze/
 ├── assets/js/       Shared JavaScript
 ├── auth/            Login / logout
 ├── config/          App config + PDO connection
-├── customers/       Customer management (next phase)
+├── customers/       Customer management
 ├── database/        SQL schema + seed data
 ├── includes/        Session, RBAC, layout partials
-├── job_cards/       Job card management (next phase)
-├── maintenance/     Maintenance records (next phase)
-├── reports/         Reports (next phase)
+├── job_cards/       Job card management
+├── maintenance/     Maintenance records
+├── reports/         Reporting and exports
 ├── technician/      Technician dashboard
-├── users/           Users & roles (next phase)
+├── users/           Users & roles
 └── index.php        Entry point (role-based redirect)
 ```
 
