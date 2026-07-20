@@ -2,7 +2,8 @@
 
 /**
  * Tests for date/timezone helpers (includes/datetime.php).
- * Covers formatting, timezone conversion, and edge cases.
+ * Covers formatting, timezone conversion, UTC database timestamps,
+ * date-only safety, and edge cases.
  */
 class DateTimeTest extends BaseTestCase
 {
@@ -75,6 +76,66 @@ class DateTimeTest extends BaseTestCase
         $this->assertEquals('—', format_datetime('—'));
     }
 
+    // --- Database UTC datetime tests ---
+
+    public function test_datetime_from_db_parses_utc(): void
+    {
+        $dt = datetime_from_db('2026-07-20 09:00:00');
+        $this->assertInstanceOf(DateTimeImmutable::class, $dt);
+        $this->assertEquals('UTC', $dt->getTimezone()->getName());
+        $this->assertEquals('2026-07-20 09:00:00', $dt->format('Y-m-d H:i:s'));
+    }
+
+    public function test_datetime_from_db_null(): void
+    {
+        $this->assertNull(datetime_from_db(null));
+    }
+
+    public function test_datetime_from_db_empty(): void
+    {
+        $this->assertNull(datetime_from_db(''));
+    }
+
+    public function test_datetime_from_db_em_dash(): void
+    {
+        $this->assertNull(datetime_from_db('—'));
+    }
+
+    public function test_format_db_datetime_converts_utc_to_kuwait(): void
+    {
+        // 2026-07-20 09:00:00 UTC = 2026-07-20 12:00:00 Asia/Kuwait (UTC+3)
+        $result = format_db_datetime('2026-07-20 09:00:00', 'Y-m-d H:i:s');
+        $this->assertEquals('2026-07-20 12:00:00', $result);
+    }
+
+    public function test_format_db_datetime_midnight_utc_stays_same_day_in_kuwait(): void
+    {
+        // 2026-07-20 00:00:00 UTC = 2026-07-20 03:00:00 Asia/Kuwait
+        $result = format_db_datetime('2026-07-20 00:00:00', 'Y-m-d H:i:s');
+        $this->assertEquals('2026-07-20 03:00:00', $result);
+    }
+
+    public function test_format_db_datetime_evening_utc_shifts_to_next_day_kuwait(): void
+    {
+        // 2026-07-20 21:00:00 UTC = 2026-07-21 00:00:00 Asia/Kuwait
+        $result = format_db_datetime('2026-07-20 21:00:00', 'Y-m-d H:i:s');
+        $this->assertEquals('2026-07-21 00:00:00', $result);
+    }
+
+    public function test_format_db_datetime_null_returns_em_dash(): void
+    {
+        $this->assertEquals('—', format_db_datetime(null));
+    }
+
+    // --- Date-only formatting (no timezone shift) ---
+
+    public function test_format_date_no_timezone_shift(): void
+    {
+        // Date-only values should NOT shift days due to timezone conversion
+        $result = format_date('2026-07-20', 'Y-m-d');
+        $this->assertEquals('2026-07-20', $result);
+    }
+
     public function test_format_date_default_format(): void
     {
         $result = format_date('2024-01-15');
@@ -91,6 +152,15 @@ class DateTimeTest extends BaseTestCase
     {
         $this->assertEquals('—', format_date(null));
     }
+
+    public function test_format_date_midnight_does_not_shift(): void
+    {
+        // Even with a time component, format_date should not shift timezone
+        $result = format_date('2026-07-20 00:00:00', 'Y-m-d');
+        $this->assertEquals('2026-07-20', $result);
+    }
+
+    // --- Timezone conversion helpers ---
 
     public function test_now_utc_returns_immutable_in_utc(): void
     {
@@ -124,6 +194,8 @@ class DateTimeTest extends BaseTestCase
         $this->assertEquals('12:00', $utc->format('H:i'));
     }
 
+    // --- KWD formatting ---
+
     public function test_format_kwd_three_decimals(): void
     {
         $this->assertEquals('15.500 KWD', format_kwd(15.5));
@@ -147,5 +219,21 @@ class DateTimeTest extends BaseTestCase
     public function test_format_kwd_string(): void
     {
         $this->assertEquals('42.750 KWD', format_kwd('42.75'));
+    }
+
+    // --- Historical timezone documentation test ---
+
+    public function test_historical_timezone_ambiguity_documented(): void
+    {
+        // This test documents the known limitation: historical timestamps
+        // stored before the UTC policy was implemented are not reinterpreted.
+        // A timestamp like '2024-06-15 14:30:00' that was stored in
+        // whatever timezone the MySQL session used at insert time will
+        // be displayed as-is if parsed without explicit UTC context.
+        $dt = datetime_create('2024-06-15 14:30:00');
+        $this->assertNotNull($dt);
+        // The value displays without timezone shifting since it was
+        // created via the generic parser (no explicit timezone given).
+        $this->assertEquals('2024-06-15 14:30:00', $dt->format('Y-m-d H:i:s'));
     }
 }

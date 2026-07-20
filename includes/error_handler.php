@@ -12,7 +12,17 @@
  *   __DIR__ . '/../storage/logs/'
  *
  * This file should be required early in the bootstrap, typically in config/config.php.
+ * It does NOT depend on includes/functions.php (e() is not available yet).
  */
+
+/**
+ * Safe HTML-escaping for use before the application view helpers are loaded.
+ * This is an internal fallback only; production pages should use e().
+ */
+function _e_safe(?string $value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
 
 /**
  * Get the runtime log directory, creating it if necessary.
@@ -27,6 +37,45 @@ function log_directory(): string
 }
 
 /**
+ * Recursively redact sensitive keys and values from an array/string.
+ *
+ * Sensitive keys (matched case-insensitively):
+ *   password, pass, secret, token, authorization, cookie, session,
+ *   api_key, sync_api_key, app_key, db_pass
+ */
+function redact_sensitive_value(mixed $value, string $key = ''): mixed
+{
+    $sensitiveKeys = [
+        'password', 'pass', 'secret', 'token', 'authorization',
+        'cookie', 'session', 'api_key', 'sync_api_key', 'app_key', 'db_pass',
+    ];
+
+    // If this value corresponds to a sensitive key, redact entirely.
+    // Match exact key names (case-insensitive) to avoid over-redacting
+    // nested arrays whose parent keys happen to contain sensitive substrings.
+    $keyLower = strtolower($key);
+    foreach ($sensitiveKeys as $sk) {
+        if ($keyLower === $sk) {
+            return '******';
+        }
+    }
+
+    if (is_array($value)) {
+        $result = [];
+        foreach ($value as $k => $v) {
+            $result[$k] = redact_sensitive_value($v, (string) $k);
+        }
+        return $result;
+    }
+
+    if (is_string($value)) {
+        return redact_secrets($value);
+    }
+
+    return $value;
+}
+
+/**
  * Redact sensitive values from log messages.
  *
  * Never log: database passwords, APP_KEY, API keys, authentication tokens,
@@ -34,7 +83,7 @@ function log_directory(): string
  */
 function redact_secrets(string $message): string
 {
-    // Redact DB_PASS values (anything after 'DB_PASS=' or 'password=' etc.)
+    // Redact DB_PASS values (anything after 'DB_PASS=')
     $message = preg_replace(
         '/(DB_PASS\s*=\s*)([^\s,;}]+)/i',
         '$1******',
@@ -55,7 +104,7 @@ function redact_secrets(string $message): string
         $message
     );
 
-    // Redact PDO connection strings
+    // Redact PDO connection strings (host, port, dbname)
     $message = preg_replace(
         '/(mysql:host=)[^;]+(;port=)[^;]+(;dbname=)[^;]+/i',
         '$1******$2******$3******',
@@ -76,23 +125,38 @@ function redact_secrets(string $message): string
         $message
     );
 
+    // Redact inline api_key, sync_api_key, secret, token values (key=value patterns)
+    $message = preg_replace(
+        '/\b(api_key|sync_api_key|secret|token)\s*=\s*[^\s,;}]+/i',
+        '$1=******',
+        $message
+    );
+
     return $message;
 }
 
 /**
  * Write a message to the runtime log file.
- * The message is redacted before writing.
+ * Both the message and context are redacted before writing.
  */
 function log_error(string $message, array $context = []): void
 {
     $dir   = log_directory();
     $file  = $dir . '/brightblaze-' . date('Y-m-d') . '.log';
     $time  = date('Y-m-d H:i:s T');
+
+    // Redact the message first
     $redacted = redact_secrets($message);
 
+    // Redact context recursively and JSON-encode
     if (!empty($context)) {
-        $contextJson = @json_encode($context, JSON_INVALID_UTF8_IGNORE | JSON_UNESCAPED_SLASHES);
-        $redacted .= ' | Context: ' . $contextJson;
+        $safeContext = redact_sensitive_value($context);
+        $contextJson = @json_encode($safeContext, JSON_INVALID_UTF8_IGNORE | JSON_UNESCAPED_SLASHES);
+        if ($contextJson !== false) {
+            $redacted .= ' | Context: ' . $contextJson;
+            // Apply final string-based redaction to the combined line
+            $redacted = redact_secrets($redacted);
+        }
     }
 
     $line = "[{$time}] {$redacted}" . PHP_EOL;
@@ -124,6 +188,7 @@ function render_error_page(string $title, string $message, array $details = []):
 
     if (!$debug) {
         // Production-safe output: no stack traces, no SQL, no paths
+        // Use internal escaping (_e_safe) instead of e() which may not be loaded yet
         ?><!doctype html>
 <html lang="en">
 <head>
@@ -140,14 +205,14 @@ function render_error_page(string $title, string $message, array $details = []):
     <h1 class="display-1 text-danger mb-4">500</h1>
     <h2 class="mb-3">Something went wrong</h2>
     <p class="text-muted mb-4">An unexpected error occurred. Please try again later or contact the system administrator.</p>
-    <a href="<?= defined('BASE_URL') ? BASE_URL : '/' ?>" class="btn btn-primary">Return to Dashboard</a>
+    <a href="<?= _e_safe(defined('BASE_URL') ? BASE_URL : '/') ?>" class="btn btn-primary">Return to Dashboard</a>
   </div>
 </body>
 </html><?php
         exit;
     }
 
-    // Development output with safe details
+    // Development output with safe details (use _e_safe for escaping)
     ?><!doctype html>
 <html lang="en">
 <head>
@@ -158,13 +223,13 @@ function render_error_page(string $title, string $message, array $details = []):
 </head>
 <body>
   <div class="container py-5">
-    <h1 class="text-danger"><?= e($title) ?></h1>
-    <div class="alert alert-danger"><?= e($message) ?></div>
+    <h1 class="text-danger"><?= _e_safe($title) ?></h1>
+    <div class="alert alert-danger"><?= _e_safe($message) ?></div>
     <?php if (!empty($details)): ?>
       <h4 class="mt-4">Details</h4>
-      <pre class="bg-light p-3 border rounded"><code><?= e(print_r($details, true)) ?></code></pre>
+      <pre class="bg-light p-3 border rounded"><code><?= _e_safe(print_r($details, true)) ?></code></pre>
     <?php endif; ?>
-    <a href="<?= defined('BASE_URL') ? BASE_URL : '/' ?>" class="btn btn-primary mt-3">Return to Dashboard</a>
+    <a href="<?= _e_safe(defined('BASE_URL') ? BASE_URL : '/') ?>" class="btn btn-primary mt-3">Return to Dashboard</a>
   </div>
 </body>
 </html><?php

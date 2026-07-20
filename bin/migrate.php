@@ -15,13 +15,16 @@
  * Requirements:
  *   - Creates and maintains a `schema_migrations` tracking table.
  *   - Discovers ordered migration files from database/migrations/.
+ *   - Uses natural version-aware ordering (m2 before m10).
  *   - Applies only pending migrations in order.
  *   - Tracks each successfully applied migration exactly once.
+ *   - Validates checksums of already-applied migrations.
+ *   - Refuses to continue if a migration file has changed since applied.
  *   - Never records a failed migration as applied.
- *   - Uses transactions where MySQL supports them.
  *   - Never resets, erases, or re-imports the database.
  *   - Makes repeated execution safe (idempotent).
  *   - Preserves compatibility with Milestone 5 schema.
+ *   - Exits with nonzero status after any failure.
  */
 
 // Bootstrap the application
@@ -49,6 +52,15 @@ function migrate_error(string $message): void
 define('MIGRATIONS_DIR', dirname(__DIR__) . '/database/migrations');
 define('MIGRATION_TABLE', 'schema_migrations');
 
+// Global exit status
+$migrate_exit_status = 0;
+
+function set_migrate_failed(): void
+{
+    global $migrate_exit_status;
+    $migrate_exit_status = 1;
+}
+
 /**
  * Ensure the schema_migrations tracking table exists.
  */
@@ -74,8 +86,16 @@ function migration_checksum(string $filepath): string
 }
 
 /**
- * Discover migration files in order.
- * Files are sorted alphabetically by filename (e.g., m1_, m2_, m3_).
+ * Natural sort comparator for version strings.
+ * Ensures m2 sorts before m10.
+ */
+function migration_version_compare(array $a, array $b): int
+{
+    return strnatcasecmp($a['version'], $b['version']);
+}
+
+/**
+ * Discover migration files in order using natural version-aware sorting.
  *
  * @return array<int, array{version: string, path: string, checksum: string}>
  */
@@ -91,8 +111,6 @@ function discover_migrations(): array
         return [];
     }
 
-    sort($files, SORT_STRING);
-
     $migrations = [];
     foreach ($files as $path) {
         $version = basename($path);
@@ -102,6 +120,8 @@ function discover_migrations(): array
             'checksum' => migration_checksum($path),
         ];
     }
+
+    usort($migrations, 'migration_version_compare');
 
     return $migrations;
 }
@@ -125,6 +145,32 @@ function get_applied_migrations(): array
 }
 
 /**
+ * Validate that all applied migrations still match their file checksums.
+ * Returns an array of mismatched version names (empty if all match).
+ *
+ * @return array<string, string>  version => error message
+ */
+function validate_checksums(): array
+{
+    $applied = get_applied_migrations();
+    $errors  = [];
+
+    foreach ($applied as $version => $record) {
+        $filepath = MIGRATIONS_DIR . '/' . $version;
+        if (!file_exists($filepath)) {
+            $errors[$version] = "Migration file missing: {$version}";
+            continue;
+        }
+        $currentChecksum = migration_checksum($filepath);
+        if ($currentChecksum !== $record['checksum']) {
+            $errors[$version] = "Checksum mismatch for {$version}: stored={$record['checksum']}, current={$currentChecksum}";
+        }
+    }
+
+    return $errors;
+}
+
+/**
  * Determine pending migrations (discovered but not yet applied).
  *
  * @return array<int, array{version: string, path: string, checksum: string}>
@@ -137,6 +183,88 @@ function get_pending_migrations(): array
     return array_values(array_filter($all, function ($m) use ($applied) {
         return !isset($applied[$m['version']]);
     }));
+}
+
+/**
+ * Parse SQL statements safely, handling:
+ *   - Line comments (-- ...)
+ *   - Multiple statements separated by semicolons
+ *   - Semicolons inside single-quoted strings (kept intact)
+ *   - Leading/trailing whitespace
+ *
+ * @param  string   $sql  Raw SQL content
+ * @return array<string>   Array of individual SQL statements
+ */
+function parse_sql_statements(string $sql): array
+{
+    $lines = explode("\n", $sql);
+    $statements = [];
+    $current = '';
+    $inSingleQuote = false;
+    $inLineComment = false;
+
+    foreach ($lines as $line) {
+        $len = strlen($line);
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = $line[$i];
+            $next = ($i + 1 < $len) ? $line[$i + 1] : '';
+
+            // Track single-quote strings to avoid splitting on semicolons inside them
+            if ($char === "'" && !$inLineComment) {
+                // Check for escaped quote ''
+                if ($next === "'") {
+                    $current .= $char . $next;
+                    $i++;
+                    continue;
+                }
+                $inSingleQuote = !$inSingleQuote;
+                $current .= $char;
+                continue;
+            }
+
+            // Line comment: -- (only if not inside a string)
+            if ($char === '-' && $next === '-' && !$inSingleQuote && !$inLineComment) {
+                $inLineComment = true;
+                continue;
+            }
+
+            // End of line comment
+            if ($inLineComment) {
+                continue;
+            }
+
+            // Semicolon ends a statement (only if not inside a string)
+            if ($char === ';' && !$inSingleQuote) {
+                $trimmed = trim($current);
+                if ($trimmed !== '') {
+                    $statements[] = $trimmed;
+                }
+                $current = '';
+                continue;
+            }
+
+            $current .= $char;
+        }
+
+        // If not in a single-quote string, reset line comment at newline
+        if (!$inSingleQuote) {
+            $inLineComment = false;
+        }
+
+        // Preserve newline outside quotes for multi-line statements
+        if ($current !== '' && !$inLineComment) {
+            $current .= "\n";
+        }
+    }
+
+    // Final statement (may not end with semicolon)
+    $trimmed = trim($current);
+    if ($trimmed !== '') {
+        $statements[] = $trimmed;
+    }
+
+    return $statements;
 }
 
 /**
@@ -155,22 +283,29 @@ function apply_migration(array $migration): bool
     }
 
     try {
-        // MySQL auto-commits on DDL (CREATE TABLE, ALTER TABLE, etc.),
-        // so we cannot wrap DDL statements in a single transaction.
-        // We execute the SQL statements directly, then wrap only the
-        // tracking INSERT in a transaction.
+        // Parse statements safely (handles -- comments, quoted semicolons)
+        $statements = parse_sql_statements($sql);
 
-        // Execute the migration statements.
-        // Split by semicolons to handle multi-statement SQL files safely.
-        $statements = explode(';', $sql);
-        foreach ($statements as $statement) {
+        // Filter out comment-only or empty statements
+        $executable = array_filter($statements, function ($stmt) {
+            $trimmed = trim($stmt);
+            return $trimmed !== '' && !str_starts_with($trimmed, '--');
+        });
+
+        if (empty($executable)) {
+            migrate_error("No executable statements in migration: {$migration['version']}");
+            return false;
+        }
+
+        // MySQL auto-commits on DDL, so execute statements directly,
+        // then wrap only the tracking INSERT in a transaction.
+        foreach ($executable as $statement) {
             $statement = trim($statement);
-            if ($statement !== '' && !str_starts_with($statement, '--')) {
-                // Skip USE statements as the PDO connection already selects the database
-                if (!preg_match('/^\s*USE\s+/i', $statement)) {
-                    $pdo->exec($statement);
-                }
+            // Skip USE statements as the PDO connection already selects the database
+            if (preg_match('/^\s*USE\s+/i', $statement)) {
+                continue;
             }
+            $pdo->exec($statement);
         }
 
         // Record the migration as applied (wrap in transaction for safety)
@@ -204,15 +339,15 @@ function apply_migration(array $migration): bool
 
 /**
  * Adapt existing Milestone 4 migration for the runner.
- * The original uses USE `brightblaze_garage`; we skip that.
- * We only apply if the column doesn't already exist (idempotent).
+ *
+ * @return bool True on success, false on failure.
  */
-function adapt_m4_migration(): void
+function adapt_m4_migration(): bool
 {
     $version = 'm4_maintenance_updated_at.sql';
     $applied = get_applied_migrations();
     if (isset($applied[$version])) {
-        return;
+        return true;
     }
 
     $pdo = db();
@@ -221,14 +356,15 @@ function adapt_m4_migration(): void
         $stmt = $pdo->query("SHOW COLUMNS FROM `maintenance_records` LIKE 'updated_at'");
         if ($stmt->fetch()) {
             // Column exists, just record it as applied
-            $checksum = migration_checksum(MIGRATIONS_DIR . '/' . $version);
+            $filepath = MIGRATIONS_DIR . '/' . $version;
+            $checksum = file_exists($filepath) ? migration_checksum($filepath) : '';
             $stmt = $pdo->prepare("
                 INSERT INTO `" . MIGRATION_TABLE . "` (`version`, `checksum`)
                 VALUES (:version, :checksum)
             ");
             $stmt->execute([':version' => $version, ':checksum' => $checksum]);
             migrate_writeln("  [SKIP]    $version (already applied)");
-            return;
+            return true;
         }
 
         // Apply the ALTER TABLE
@@ -237,28 +373,32 @@ function adapt_m4_migration(): void
             ADD COLUMN `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `created_at`
         ");
 
-        $checksum = migration_checksum(MIGRATIONS_DIR . '/' . $version);
+        $filepath = MIGRATIONS_DIR . '/' . $version;
+        $checksum = file_exists($filepath) ? migration_checksum($filepath) : '';
         $stmt = $pdo->prepare("
             INSERT INTO `" . MIGRATION_TABLE . "` (`version`, `checksum`)
             VALUES (:version, :checksum)
         ");
         $stmt->execute([':version' => $version, ':checksum' => $checksum]);
         migrate_writeln("  [OK]      $version");
+        return true;
     } catch (PDOException $e) {
         migrate_error("Failed to adapt m4 migration: " . $e->getMessage());
+        return false;
     }
 }
 
 /**
  * Adapt existing Milestone 5 migration for the runner.
- * Uses CREATE TABLE IF NOT EXISTS so it's already idempotent.
+ *
+ * @return bool True on success, false on failure.
  */
-function adapt_m5_migration(): void
+function adapt_m5_migration(): bool
 {
     $version = 'm5_settings.sql';
     $applied = get_applied_migrations();
     if (isset($applied[$version])) {
-        return;
+        return true;
     }
 
     $pdo = db();
@@ -288,15 +428,18 @@ function adapt_m5_migration(): void
             ('sync_status',       'local_only')
         ");
 
-        $checksum = migration_checksum(MIGRATIONS_DIR . '/' . $version);
+        $filepath = MIGRATIONS_DIR . '/' . $version;
+        $checksum = file_exists($filepath) ? migration_checksum($filepath) : '';
         $stmt = $pdo->prepare("
             INSERT INTO `" . MIGRATION_TABLE . "` (`version`, `checksum`)
             VALUES (:version, :checksum)
         ");
         $stmt->execute([':version' => $version, ':checksum' => $checksum]);
         migrate_writeln("  [OK]      $version");
+        return true;
     } catch (PDOException $e) {
         migrate_error("Failed to adapt m5 migration: " . $e->getMessage());
+        return false;
     }
 }
 
@@ -311,6 +454,7 @@ function cmd_status(): void
 
     $all     = discover_migrations();
     $applied = get_applied_migrations();
+    $checksumErrors = validate_checksums();
 
     migrate_writeln("Migration Status");
     migrate_writeln(str_repeat('-', 60));
@@ -324,16 +468,28 @@ function cmd_status(): void
         $version = $m['version'];
         if (isset($applied[$version])) {
             $appliedAt = $applied[$version]['applied_at'];
-            migrate_writeln("  [OK]      $version  ($appliedAt)");
+            if (isset($checksumErrors[$version])) {
+                migrate_writeln("  [CHECKSUM MISMATCH] $version  ($appliedAt)");
+            } else {
+                migrate_writeln("  [OK]      $version  ($appliedAt)");
+            }
         } else {
             migrate_writeln("  [PENDING] $version");
         }
     }
 
-    // Count
-    $pendingCount = count($all) - count($applied);
+    // Count pending using get_pending_migrations()
+    $pendingCount = count(get_pending_migrations());
     migrate_writeln(str_repeat('-', 60));
     migrate_writeln(count($applied) . " applied, " . $pendingCount . " pending");
+
+    if (!empty($checksumErrors)) {
+        migrate_writeln(str_repeat('-', 60));
+        foreach ($checksumErrors as $error) {
+            migrate_writeln("  WARNING: " . $error);
+        }
+        migrate_writeln("Run 'up' to re-apply changed migrations (manual intervention may be required).");
+    }
 }
 
 /**
@@ -343,10 +499,27 @@ function cmd_up(): void
 {
     ensure_migration_table();
 
+    // Check for checksum mismatches before proceeding
+    $checksumErrors = validate_checksums();
+    if (!empty($checksumErrors)) {
+        migrate_error("Checksum validation failed. Refusing to continue.");
+        foreach ($checksumErrors as $error) {
+            migrate_error("  " . $error);
+        }
+        set_migrate_failed();
+        return;
+    }
+
     // First, adapt existing Milestone 4 and 5 migrations
     migrate_writeln("Adapting existing migrations...");
-    adapt_m4_migration();
-    adapt_m5_migration();
+    if (!adapt_m4_migration()) {
+        set_migrate_failed();
+        return;
+    }
+    if (!adapt_m5_migration()) {
+        set_migrate_failed();
+        return;
+    }
 
     // Then apply any new migrations
     $pending = get_pending_migrations();
@@ -369,13 +542,17 @@ function cmd_up(): void
             migrate_writeln("  [OK]      {$migration['version']}");
         } else {
             $failed++;
+            set_migrate_failed();
             migrate_error("Migration failed: {$migration['version']}. Stopping.");
             break;
         }
     }
 
-    migrate_writeln(str_repeat('-', 60));
-    migrate_writeln("$applied applied, $failed failed");
+    if ($failed > 0) {
+        migrate_error("$applied applied, $failed failed");
+    } else {
+        migrate_writeln("$applied applied, $failed failed");
+    }
 }
 
 // --- Main ---
@@ -394,4 +571,6 @@ if (!defined('MIGRATE_INCLUDE_ONLY') || !MIGRATE_INCLUDE_ONLY) {
             migrate_writeln("Usage: php bin/migrate.php {up|status}");
             exit(1);
     }
+
+    exit($migrate_exit_status);
 }

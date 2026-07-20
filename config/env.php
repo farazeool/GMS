@@ -67,10 +67,17 @@ function load_env(): void
 
 /**
  * Get an environment variable with an optional default.
+ *
+ * Uses strict null detection so that legitimate values such as "0"
+ * or "" are not incorrectly replaced by the default.
  */
 function env(string $key, mixed $default = null): mixed
 {
-    return $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key) ?: $default;
+    $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+    if ($value === false || $value === null) {
+        return $default;
+    }
+    return $value;
 }
 
 /**
@@ -130,8 +137,9 @@ function env_require(string ...$keys): void
 function env_require_production(): void
 {
     $appEnv = env('APP_ENV', 'local');
-    if ($appEnv !== 'local') {
-        env_require('APP_KEY', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS');
+    $safeEnvs = ['local', 'testing', 'dev', 'development'];
+    if (!in_array($appEnv, $safeEnvs, true)) {
+        env_require('APP_KEY', 'APP_URL', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS');
     }
 }
 

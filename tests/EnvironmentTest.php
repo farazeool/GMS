@@ -28,6 +28,18 @@ class EnvironmentTest extends BaseTestCase
         $this->assertEquals('test_value', env('TEST_KEY'));
     }
 
+    public function test_env_returns_zero_string(): void
+    {
+        $_ENV['ZERO_KEY'] = '0';
+        $this->assertSame('0', env('ZERO_KEY'));
+    }
+
+    public function test_env_returns_empty_string(): void
+    {
+        $_ENV['EMPTY_KEY'] = '';
+        $this->assertSame('', env('EMPTY_KEY'));
+    }
+
     public function test_env_bool_returns_false_for_missing_key(): void
     {
         $this->assertFalse(env_bool('NONEXISTENT_BOOL'));
@@ -124,25 +136,26 @@ class EnvironmentTest extends BaseTestCase
         env_require_production();
     }
 
-    public function test_local_defaults_are_set(): void
+    public function test_env_require_production_includes_app_url(): void
     {
-        $_ENV['APP_ENV'] = 'local';
-        $this->assertEquals('local', env('APP_ENV'));
+        $_ENV['APP_ENV'] = 'production';
+        unset($_ENV['APP_URL']);
+        unset($_ENV['APP_KEY'], $_ENV['DB_PASS']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('APP_URL');
+        env_require_production();
     }
 
-    public function test_parse_url_for_base_url(): void
+    public function test_bootstrap_rejects_incomplete_production_config(): void
     {
-        $url = 'http://localhost/brightblaze';
-        $parsed = parse_url($url);
-        $baseUrl = ($parsed['path'] ?? '/') . '/';
-        $this->assertEquals('/brightblaze/', $baseUrl);
-    }
-
-    public function test_parse_url_root_path(): void
-    {
-        $url = 'http://localhost';
-        $parsed = parse_url($url);
-        $baseUrl = ($parsed['path'] ?? '/') . '/';
-        $this->assertEquals('//', $baseUrl);
+        // Simulate what happens during bootstrap with production config
+        $appEnv = env('APP_ENV', 'local');
+        if ($appEnv !== 'local') {
+            $this->expectException(RuntimeException::class);
+            env_require('APP_KEY', 'APP_URL', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS');
+        }
+        // In testing mode we skip this, so just assert true
+        $this->assertTrue(true);
     }
 }

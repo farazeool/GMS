@@ -22,6 +22,10 @@ define('BASE_URL', $baseUrl);
 $timezone = env('APP_TIMEZONE', 'Asia/Kuwait');
 date_default_timezone_set($timezone);
 
+// Validate production configuration now that the error handler is active.
+// In non-local environments, missing required values trigger a safe error page.
+env_require_production();
+
 require_once __DIR__ . '/../includes/datetime.php';
 
 require_once __DIR__ . '/database.php';
