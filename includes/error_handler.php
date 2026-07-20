@@ -39,25 +39,55 @@ function log_directory(): string
 /**
  * Recursively redact sensitive keys and values from an array/string.
  *
- * Sensitive keys (matched case-insensitively):
+ * A key is redacted if any underscore-delimited component matches a sensitive term.
+ * This allows matches like "user_password" (matches "password") but not
+ * "passenger_name" or "token_count" or "compassion_note".
+ *
+ * Sensitive terms (matched case-insensitively):
  *   password, pass, secret, token, authorization, cookie, session,
  *   api_key, sync_api_key, app_key, db_pass
  */
 function redact_sensitive_value(mixed $value, string $key = ''): mixed
 {
-    $sensitiveKeys = [
+    // Ordered so longer exact matches are tested first to avoid
+    // partial matches (e.g. "api_key" before "key").
+    $sensitiveTerms = [
         'password', 'pass', 'secret', 'token', 'authorization',
         'cookie', 'session', 'api_key', 'sync_api_key', 'app_key', 'db_pass',
     ];
 
-    // If this value corresponds to a sensitive key, redact entirely.
-    // Match exact key names (case-insensitive) to avoid over-redacting
-    // nested arrays whose parent keys happen to contain sensitive substrings.
     $keyLower = strtolower($key);
-    foreach ($sensitiveKeys as $sk) {
-        if ($keyLower === $sk) {
-            return '******';
+
+    // Exact match: the entire key is a sensitive term
+    if (in_array($keyLower, $sensitiveTerms, true)) {
+        return '******';
+    }
+
+    // Multi-word exact match: "api_key", "sync_api_key", etc.
+    if (in_array($keyLower, ['api_key', 'sync_api_key', 'app_key', 'db_pass'], true)) {
+        return '******';
+    }
+
+    // Component match: split by underscore and test each component.
+    // "password" is always sensitive (matches password_confirmation, user_password).
+    // "secret", "authorization", "cookie", "session" are always sensitive.
+    // "token" and "pass" are only sensitive at the END of the key to avoid
+    // false positives like "token_count" or "passenger_name".
+    $components = explode('_', $keyLower);
+    $lastComponent = $components[count($components) - 1] ?? '';
+
+    foreach ($components as $comp) {
+        if (!in_array($comp, $sensitiveTerms, true)) {
+            continue;
         }
+        // Skip ambiguous terms unless they are the last component
+        if (in_array($comp, ['token', 'pass'], true) && $comp !== $lastComponent) {
+            continue;
+        }
+        // Skip if the only sensitive match is from the "pass" substring
+        // inside a longer word like "passenger" (the components are already
+        // split by underscore, so "passenger" won't match "pass").
+        return '******';
     }
 
     if (is_array($value)) {
@@ -188,7 +218,6 @@ function render_error_page(string $title, string $message, array $details = []):
 
     if (!$debug) {
         // Production-safe output: no stack traces, no SQL, no paths
-        // Use internal escaping (_e_safe) instead of e() which may not be loaded yet
         ?><!doctype html>
 <html lang="en">
 <head>
@@ -212,7 +241,7 @@ function render_error_page(string $title, string $message, array $details = []):
         exit;
     }
 
-    // Development output with safe details (use _e_safe for escaping)
+    // Development output with safe details
     ?><!doctype html>
 <html lang="en">
 <head>
@@ -257,7 +286,6 @@ function handle_exception(Throwable $e): void
 function handle_error(int $severity, string $message, string $file, int $line): bool
 {
     if (!(error_reporting() & $severity)) {
-        // Error level not included in error_reporting
         return false;
     }
     throw new ErrorException($message, 0, $severity, $file, $line);
@@ -280,7 +308,6 @@ function handle_shutdown(): void
 }
 
 // Register handlers only when not running PHPUnit tests
-// (PHPUnit has its own error handling that we must not override)
 if (!defined('PHPUNIT_RUNNING') || !PHPUNIT_RUNNING) {
     set_exception_handler('handle_exception');
     set_error_handler('handle_error');

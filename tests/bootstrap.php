@@ -26,6 +26,44 @@ define('MIGRATE_INCLUDE_ONLY', true);
 require_once __DIR__ . '/../bin/migrate.php';
 
 /**
+ * Validate that a candidate test database name is safe.
+ * Only "brightblaze_test" is allowed. Rejects production name,
+ * empty names, and names with suspicious characters.
+ *
+ * @param  string $testDb
+ * @return string
+ * @throws RuntimeException
+ */
+function validate_test_database_name(string $testDb): string
+{
+    $testDb = trim($testDb);
+
+    if ($testDb === '') {
+        throw new RuntimeException('REFUSED: Test database name is empty.');
+    }
+
+    if ($testDb === 'brightblaze_garage') {
+        throw new RuntimeException(
+            'REFUSED: Test database name must not be the production database "brightblaze_garage".'
+        );
+    }
+
+    if ($testDb !== 'brightblaze_test') {
+        throw new RuntimeException(
+            'REFUSED: Test database name must be exactly "brightblaze_test", got "' . $testDb . '".'
+        );
+    }
+
+    if (preg_match('/[\s`\'";\\\\]/', $testDb)) {
+        throw new RuntimeException(
+            'REFUSED: Test database name contains invalid characters: "' . $testDb . '".'
+        );
+    }
+
+    return $testDb;
+}
+
+/**
  * Verify that the active database is a safe test database.
  * Throws RuntimeException if the database is brightblaze_garage or unknown.
  *
@@ -69,7 +107,10 @@ function setup_test_database(): void
     $port = env('DB_PORT', '3306');
     $user = env('DB_USER', 'root');
     $pass = env('DB_PASS', '');
-    $testDb = env('DB_NAME', 'brightblaze_test');
+    $rawDb = env('DB_NAME', 'brightblaze_test');
+
+    // Validate the test database name BEFORE using it in SQL
+    $testDb = validate_test_database_name($rawDb);
 
     try {
         // Connect without database to create it if needed
@@ -135,6 +176,8 @@ function setup_test_database(): void
         ");
     } catch (PDOException $e) {
         throw new RuntimeException('Test database setup failed: ' . $e->getMessage());
+    } catch (RuntimeException $e) {
+        throw $e;
     }
 }
 

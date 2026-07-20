@@ -488,7 +488,9 @@ function cmd_status(): void
         foreach ($checksumErrors as $error) {
             migrate_writeln("  WARNING: " . $error);
         }
-        migrate_writeln("Run 'up' to re-apply changed migrations (manual intervention may be required).");
+        migrate_writeln("Applied migration files must not be edited.");
+        migrate_writeln("To fix: restore the original migration file or create a new forward migration.");
+        migrate_writeln("The 'up' command will remain blocked until integrity is restored.");
     }
 }
 

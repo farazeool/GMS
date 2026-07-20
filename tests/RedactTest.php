@@ -212,4 +212,104 @@ class RedactTest extends BaseTestCase
 
         @unlink($file);
     }
+
+    // --- Broader context matching tests ---
+
+    public function test_redact_user_password_key(): void
+    {
+        $context = ['user_password' => 'secret123'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['user_password']);
+    }
+
+    public function test_redact_password_confirmation_key(): void
+    {
+        $context = ['password_confirmation' => 'mypass'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['password_confirmation']);
+    }
+
+    public function test_redact_access_token_key(): void
+    {
+        $context = ['access_token' => 'eyJhbGciOiJ9.xxx'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['access_token']);
+    }
+
+    public function test_redact_refresh_token_key(): void
+    {
+        $context = ['refresh_token' => 'rt_abc123'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['refresh_token']);
+    }
+
+    public function test_redact_auth_token_key(): void
+    {
+        $context = ['auth_token' => 'tok_xxx'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['auth_token']);
+    }
+
+    public function test_redact_session_cookie_key(): void
+    {
+        $context = ['session_cookie' => 'sess_abc'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['session_cookie']);
+    }
+
+    public function test_redact_authorization_header_key(): void
+    {
+        $context = ['authorization_header' => 'Bearer abc'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('******', $redacted['authorization_header']);
+    }
+
+    // --- Negative tests: must NOT redact ---
+
+    public function test_do_not_redact_token_count(): void
+    {
+        $context = ['token_count' => 42];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals(42, $redacted['token_count']);
+    }
+
+    public function test_do_not_redact_passenger_name(): void
+    {
+        $context = ['passenger_name' => 'John'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('John', $redacted['passenger_name']);
+    }
+
+    public function test_do_not_redact_compassion_note(): void
+    {
+        $context = ['compassion_note' => 'Be kind'];
+        $redacted = redact_sensitive_value($context);
+        $this->assertEquals('Be kind', $redacted['compassion_note']);
+    }
+
+    // --- Test database name guard in bootstrap ---
+
+    public function test_assert_test_database_accepts_test_db(): void
+    {
+        $pdo = db();
+        $dbName = assert_test_database($pdo);
+        $this->assertEquals('brightblaze_test', $dbName);
+    }
+
+    public function test_assert_test_database_rejects_garage(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('REFUSED');
+
+        $host = env('DB_HOST', 'localhost');
+        $port = env('DB_PORT', '3306');
+        $user = env('DB_USER', 'root');
+        $pass = env('DB_PASS', '');
+
+        $pdo = new PDO("mysql:host={$host};port={$port};dbname=brightblaze_garage;charset=utf8mb4", $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
+
+        assert_test_database($pdo);
+    }
 }
