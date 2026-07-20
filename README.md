@@ -2,9 +2,11 @@
 
 A full-stack garage management system for a Kuwait-based garage, built with **plain PHP**, **MySQL**, **Bootstrap 5**, and **JavaScript**. Designed to run locally on **XAMPP**.
 
-## Phase 1 (this branch)
+## Milestones
 
-Foundation only:
+BrightBlaze is now organized around five working milestones that build on the same plain PHP / MySQL codebase.
+
+### Milestone 1 - Foundation
 
 - XAMPP-compatible folder structure
 - MySQL database schema + realistic Kuwait seed data (`database/brightblaze.sql`)
@@ -13,7 +15,35 @@ Foundation only:
 - Role-based access control (admin, technician)
 - Admin dashboard shell with live stats (`admin/dashboard.php`)
 - Technician dashboard shell (`technician/dashboard.php`)
-- Module placeholders for the next phases (customers, vehicles, job cards, maintenance, reports, users)
+- Shared layout, helper, and CSRF/session utilities (`includes/`)
+
+### Milestone 2 - Core Master Data
+
+- Customer management (`customers/`)
+- Vehicle registry (`vehicles/`)
+- Customer-to-vehicle relationships and history views
+
+### Milestone 3 - Job Card Workflow
+
+- Job card creation, editing, listing, and detail views (`job_cards/`)
+- Technician assignment and workflow status rules
+- Service notes and completion checks
+- Automatic maintenance record creation from completed job cards
+
+### Milestone 4 - Maintenance and Reporting
+
+- Maintenance record browsing, editing, and detail views (`maintenance/`)
+- Operational reporting with filters and CSV export (`reports/`)
+- Report logging for generated exports
+
+### Milestone 5 - Administration and Settings
+
+- User and role management (`users/`)
+- Password reset and activation controls
+- System settings for garage profile, currency, and sync placeholders (`admin/settings.php`)
+- Local-only deployment support for a future sync architecture
+
+Cloud synchronization is intentionally not implemented yet.
 
 ## Requirements
 
@@ -52,13 +82,18 @@ brightblaze/
 ├── assets/js/       Shared JavaScript
 ├── auth/            Login / logout
 ├── config/          App config + PDO connection
-├── customers/       Customer management (next phase)
+├── customers/       Customer management
 ├── database/        SQL schema + seed data
 ├── includes/        Session, RBAC, layout partials
-├── job_cards/       Job card management (next phase)
-├── maintenance/     Maintenance records (next phase)
-├── reports/         Reports (next phase)
+├── job_cards/       Job card management
+├── maintenance/     Maintenance records
+├── reports/         Reporting and exports
 ├── technician/      Technician dashboard
-├── users/           Users & roles (next phase)
+├── users/           Users & roles
 └── index.php        Entry point (role-based redirect)
 ```
+
+## Project docs
+
+- [Architecture overview](docs/ARCHITECTURE.md)
+- [Current state audit](docs/CURRENT_STATE_AUDIT.md)
