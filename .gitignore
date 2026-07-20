@@ -1,0 +1,35 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Runtime logs
+storage/logs/*
+!storage/logs/.gitkeep
+
+# Backups and temporary files
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local secrets and IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# PHPUnit cache and artifacts
+.phpunit.result.cache
+.phpunit.cache/
+tests/_output/
+tests/_support/_generated/
+
+# Composer
+vendor/
+composer.lock
+
+# Generated test database
+tests/_data/testdb.sqlite

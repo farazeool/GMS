@@ -97,3 +97,5 @@ brightblaze/
 
 - [Architecture overview](docs/ARCHITECTURE.md)
 - [Current state audit](docs/CURRENT_STATE_AUDIT.md)
+- [Configuration guide](docs/CONFIGURATION.md)
+- [Migration guide](docs/MIGRATIONS.md)
