@@ -95,12 +95,12 @@ $statusInfo = $syncStatusLabels[$settings['sync_status']] ?? $syncStatusLabels['
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0"><i class="bi bi-gear bb-text-orange"></i> System Settings</h4>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="bb-page-title"><i class="bi bi-gear bb-text-orange" aria-hidden="true"></i> System Settings</h1>
 </div>
 
 <?php if ($errors): ?>
-  <div class="alert alert-danger">
+  <div class="alert alert-danger" role="alert">
     <strong>Please fix the following:</strong>
     <ul class="mb-0">
       <?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?>
@@ -113,10 +113,13 @@ include __DIR__ . '/../includes/header.php';
   <div class="row g-3">
     <div class="col-lg-6">
       <div class="card h-100">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-shop"></i> Garage Profile</div>
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="bi bi-shop bb-text-orange" aria-hidden="true"></i>
+          <h2 class="h6 mb-0">Garage Profile</h2>
+        </div>
         <div class="card-body">
           <div class="mb-3">
-            <label class="form-label" for="garage_name">Garage / Business Name <span class="text-danger">*</span></label>
+            <label class="form-label" for="garage_name">Garage / Business Name <span class="bb-required" aria-hidden="true">*</span></label>
             <input class="form-control" type="text" id="garage_name" name="garage_name" value="<?= e($settings['garage_name']) ?>" maxlength="120" required>
           </div>
           <div class="row g-3">
@@ -144,10 +147,13 @@ include __DIR__ . '/../includes/header.php';
 
     <div class="col-lg-6">
       <div class="card h-100">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-cloud-arrow-up"></i> Installation &amp; Sync</div>
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="bi bi-cloud-arrow-up bb-text-orange" aria-hidden="true"></i>
+          <h2 class="h6 mb-0">Installation &amp; Sync</h2>
+        </div>
         <div class="card-body">
-          <div class="alert alert-light border small">
-            <i class="bi bi-info-circle"></i> Online backup/sync is planned for a future update. These settings prepare the system for it; no data leaves this installation yet.
+          <div class="alert alert-info border-0 small" role="note">
+            <i class="bi bi-info-circle" aria-hidden="true"></i> Online backup/sync is planned for a future update. These settings prepare the system for it; no data leaves this installation yet.
           </div>
           <div class="row g-3">
             <div class="col-md-6">
@@ -191,7 +197,7 @@ include __DIR__ . '/../includes/header.php';
   </div>
 
   <div class="mt-3 d-flex gap-2">
-    <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg"></i> Save Settings</button>
+    <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> Save Settings</button>
   </div>
 </form>
 

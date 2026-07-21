@@ -29,21 +29,22 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-  <h4 class="fw-bold mb-0"><i class="bi bi-person-gear bb-text-orange"></i> Users &amp; Roles <span class="badge text-bg-secondary fs-6"><?= count($users) ?></span></h4>
-  <a class="btn btn-bb" href="<?= base_url('users/form.php') ?>"><i class="bi bi-person-plus"></i> Add User</a>
+  <h1 class="bb-page-title"><i class="bi bi-person-gear bb-text-orange" aria-hidden="true"></i> Users &amp; Roles <span class="badge text-bg-secondary align-middle"><?= count($users) ?></span></h1>
+  <a class="btn btn-bb" href="<?= base_url('users/form.php') ?>"><i class="bi bi-person-plus" aria-hidden="true"></i> Add User</a>
 </div>
 
 <div class="card mb-3">
   <div class="card-body py-3">
     <form class="row g-2" method="get" action="<?= base_url('users/index.php') ?>">
       <div class="col-md-6 col-lg-5">
+        <label class="visually-hidden" for="userSearch">Search users</label>
         <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Search by name, username, email, or role">
+          <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+          <input class="form-control" type="text" id="userSearch" name="q" value="<?= e($q) ?>" placeholder="Search by name, username, email, or role">
         </div>
       </div>
       <div class="col-auto">
-        <button class="btn btn-bb-orange" type="submit">Search</button>
+        <button class="btn btn-bb" type="submit">Search</button>
         <?php if ($q !== ''): ?>
           <a class="btn btn-outline-secondary" href="<?= base_url('users/index.php') ?>">Clear</a>
         <?php endif; ?>
@@ -56,15 +57,15 @@ include __DIR__ . '/../includes/header.php';
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+        <thead>
           <tr>
             <th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th>
-            <th>Created</th><th>Updated</th><th class="text-end">Actions</th>
+            <th>Created</th><th>Updated</th><th class="bb-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           <?php if (!$users): ?>
-            <tr><td colspan="8" class="text-center text-muted py-4">No users match your search.</td></tr>
+            <tr><td colspan="8" class="bb-empty">No users match your search.</td></tr>
           <?php endif; ?>
           <?php foreach ($users as $u): ?>
             <?php
@@ -74,7 +75,7 @@ include __DIR__ . '/../includes/header.php';
             <tr>
               <td class="fw-semibold">
                 <?= e($u['full_name']) ?>
-                <?php if ($isSelf): ?><span class="badge bg-bb-orange">You</span><?php endif; ?>
+                <?php if ($isSelf): ?><span class="badge bb-text-orange">You</span><?php endif; ?>
               </td>
               <td><?= e($u['username']) ?></td>
               <td><?= e($u['email'] ?? '') ?: '<span class="text-muted">—</span>' ?></td>
@@ -82,22 +83,22 @@ include __DIR__ . '/../includes/header.php';
               <td><?= active_badge((int) $u['is_active']) ?></td>
               <td class="text-muted small"><?= format_date($u['created_at']) ?></td>
               <td class="text-muted small"><?= format_date($u['updated_at'] ?? null) ?></td>
-              <td class="text-end text-nowrap">
-                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('users/form.php?id=' . (int) $u['id']) ?>" title="Edit"><i class="bi bi-pencil"></i></a>
-                <a class="btn btn-sm btn-outline-dark" href="<?= base_url('users/password.php?id=' . (int) $u['id']) ?>" title="Reset password"><i class="bi bi-key"></i></a>
+              <td class="bb-actions">
+                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('users/form.php?id=' . (int) $u['id']) ?>" aria-label="Edit <?= e($u['full_name']) ?>" title="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('users/password.php?id=' . (int) $u['id']) ?>" aria-label="Reset password for <?= e($u['full_name']) ?>" title="Reset password"><i class="bi bi-key" aria-hidden="true"></i></a>
                 <?php if (!$isSelf && !((int) $u['is_active'] === 1 && $isLastActiveAdmin)): ?>
-                  <form class="d-inline" method="post" action="<?= base_url('users/status.php') ?>">
+                  <form method="post" action="<?= base_url('users/status.php') ?>">
                     <?= csrf_field() ?>
                     <input type="hidden" name="id" value="<?= (int) $u['id'] ?>">
                     <?php if ((int) $u['is_active'] === 1): ?>
-                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Deactivate"
+                      <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Deactivate <?= e($u['full_name']) ?>" title="Deactivate"
                               data-confirm="Deactivate <?= e($u['full_name']) ?>? They will no longer be able to sign in.">
-                        <i class="bi bi-person-x"></i>
+                        <i class="bi bi-person-x" aria-hidden="true"></i>
                       </button>
                     <?php else: ?>
-                      <button class="btn btn-sm btn-outline-success" type="submit" title="Activate"
+                      <button class="btn btn-sm btn-outline-success" type="submit" aria-label="Activate <?= e($u['full_name']) ?>" title="Activate"
                               data-confirm="Activate <?= e($u['full_name']) ?>?">
-                        <i class="bi bi-person-check"></i>
+                        <i class="bi bi-person-check" aria-hidden="true"></i>
                       </button>
                     <?php endif; ?>
                   </form>
@@ -109,7 +110,7 @@ include __DIR__ . '/../includes/header.php';
       </table>
     </div>
     <p class="text-muted small mb-0 mt-3">
-      <i class="bi bi-shield-lock"></i> Users cannot be deleted, only deactivated, to preserve job card and service note history.
+      <i class="bi bi-shield-lock" aria-hidden="true"></i> Users cannot be deleted, only deactivated, to preserve job card and service note history.
       You cannot deactivate your own account or the only active administrator.
     </p>
   </div>

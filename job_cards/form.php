@@ -163,21 +163,21 @@ $active = 'job_cards';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0"><?= $isEdit ? 'Edit Job Card ' . e($existing['job_number']) : 'New Job Card' ?></h4>
-  <a class="btn btn-outline-secondary" href="<?= base_url('job_cards/index.php') ?>"><i class="bi bi-arrow-left"></i> Back to Job Cards</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="bb-page-title mb-0"><?= $isEdit ? 'Edit Job Card ' . e($existing['job_number']) : 'New Job Card' ?></h1>
+  <a class="btn btn-outline-secondary" href="<?= base_url('job_cards/index.php') ?>"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Job Cards</a>
 </div>
 
 <?php if (!$customersList || !$vehiclesList): ?>
-  <div class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle"></i> You need at least one customer and one vehicle before creating a job card.
+  <div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> You need at least one customer and one vehicle before creating a job card.
     <a class="alert-link" href="<?= base_url('customers/form.php') ?>">Add a customer</a> or
     <a class="alert-link" href="<?= base_url('vehicles/form.php') ?>">register a vehicle</a> first.
   </div>
 <?php endif; ?>
 
 <?php if ($errors): ?>
-  <div class="alert alert-danger">
+  <div class="alert alert-danger" role="alert">
     <strong>Please fix the following:</strong>
     <ul class="mb-0">
       <?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?>
@@ -185,13 +185,13 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<div class="card" style="max-width: 920px;">
+<div class="card bb-form-narrow">
   <div class="card-body p-4">
     <form method="post" action="<?= base_url('job_cards/form.php' . ($isEdit ? '?id=' . $id : '')) ?>">
       <?= csrf_field() ?>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="customer_id">Customer <span class="text-danger">*</span></label>
+          <label class="form-label" for="customer_id">Customer <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="customer_id" name="customer_id" required>
             <option value="">— Select customer —</option>
             <?php foreach ($customersList as $c): ?>
@@ -200,7 +200,7 @@ include __DIR__ . '/../includes/header.php';
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="vehicle_id">Vehicle <span class="text-danger">*</span></label>
+          <label class="form-label" for="vehicle_id">Vehicle <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="vehicle_id" name="vehicle_id" required>
             <option value="">— Select vehicle —</option>
             <?php foreach ($vehiclesList as $v): ?>
@@ -213,7 +213,7 @@ include __DIR__ . '/../includes/header.php';
           <div class="form-text">Choose the customer first to filter their vehicles.</div>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="service_category">Service Category <span class="text-danger">*</span></label>
+          <label class="form-label" for="service_category">Service Category <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="service_category" name="service_category" required>
             <option value="">— Select category —</option>
             <?php foreach (SERVICE_CATEGORIES as $cat): ?>
@@ -231,7 +231,7 @@ include __DIR__ . '/../includes/header.php';
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="priority">Priority <span class="text-danger">*</span></label>
+          <label class="form-label" for="priority">Priority <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="priority" name="priority" required>
             <?php foreach (JOB_PRIORITIES as $p): ?>
               <option value="<?= e($p) ?>" <?= $job['priority'] === $p ? 'selected' : '' ?>><?= e($p) ?></option>
@@ -239,7 +239,7 @@ include __DIR__ . '/../includes/header.php';
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="status">Status <span class="text-danger">*</span></label>
+          <label class="form-label" for="status">Status <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="status" name="status" required>
             <?php foreach ($statusOptions as $s): ?>
               <option value="<?= e($s) ?>" <?= $job['status'] === $s ? 'selected' : '' ?>><?= e($s) ?></option>
@@ -251,13 +251,13 @@ include __DIR__ . '/../includes/header.php';
           <input class="form-control" type="date" id="estimated_completion" name="estimated_completion" value="<?= e((string) ($job['estimated_completion'] ?? '')) ?>">
         </div>
         <div class="col-12">
-          <label class="form-label" for="problem_description">Problem Description <span class="text-danger">*</span></label>
+          <label class="form-label" for="problem_description">Problem Description <span class="bb-required" aria-hidden="true">*</span></label>
           <textarea class="form-control" id="problem_description" name="problem_description" rows="4" required placeholder="Describe the reported problem or requested service"><?= e($job['problem_description']) ?></textarea>
         </div>
       </div>
       <div class="mt-4 d-flex gap-2">
         <button class="btn btn-bb" type="submit" <?= (!$customersList || !$vehiclesList) ? 'disabled' : '' ?>>
-          <i class="bi bi-check-lg"></i> <?= $isEdit ? 'Save Changes' : 'Create Job Card' ?>
+          <i class="bi bi-check-lg" aria-hidden="true"></i> <?= $isEdit ? 'Save Changes' : 'Create Job Card' ?>
         </button>
         <a class="btn btn-outline-secondary" href="<?= base_url('job_cards/index.php') ?>">Cancel</a>
       </div>

@@ -62,19 +62,19 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 no-print">
-  <h4 class="fw-bold mb-0"><i class="bi bi-graph-up bb-text-orange"></i> Reports</h4>
+  <h1 class="bb-page-title"><i class="bi bi-graph-up bb-text-orange" aria-hidden="true"></i> Reports</h1>
   <div class="d-flex gap-2 flex-wrap">
-    <a class="btn btn-bb" href="<?= base_url('reports/export.php' . ($exportQuery ? '?' . $exportQuery : '')) ?>"><i class="bi bi-download"></i> Export CSV</a>
-    <button class="btn btn-outline-secondary" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+    <a class="btn btn-bb" href="<?= base_url('reports/export.php' . ($exportQuery ? '?' . $exportQuery : '')) ?>"><i class="bi bi-download" aria-hidden="true"></i> Export CSV</a>
+    <button class="btn btn-outline-secondary" type="button" onclick="window.print()"><i class="bi bi-printer" aria-hidden="true"></i> Print</button>
   </div>
 </div>
 
 <div class="mb-3 no-print">
   <span class="me-2 text-muted small">Quick reports:</span>
   <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('reports/index.php') ?>">All job cards</a>
-  <a class="btn btn-sm btn-outline-success" href="<?= base_url('reports/index.php?preset=completed&generate=1') ?>">Completed services</a>
-  <a class="btn btn-sm btn-outline-primary" href="<?= base_url('reports/index.php?preset=active&generate=1') ?>">Pending / in-progress</a>
-  <a class="btn btn-sm btn-outline-dark" href="<?= base_url('reports/index.php?start=' . date('Y-m-01') . '&end=' . date('Y-m-d') . '&generate=1') ?>">This month</a>
+  <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('reports/index.php?preset=completed&generate=1') ?>">Completed services</a>
+  <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('reports/index.php?preset=active&generate=1') ?>">Pending / in-progress</a>
+  <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('reports/index.php?start=' . date('Y-m-01') . '&end=' . date('Y-m-d') . '&generate=1') ?>">This month</a>
 </div>
 
 <div class="card mb-3 no-print">
@@ -82,16 +82,16 @@ include __DIR__ . '/../includes/header.php';
     <form class="row g-2 align-items-end" method="get" action="<?= base_url('reports/index.php') ?>">
       <input type="hidden" name="generate" value="1">
       <div class="col-md-2">
-        <label class="form-label small mb-1">Start date</label>
-        <input class="form-control" type="date" name="start" value="<?= e($f['start']) ?>">
+        <label class="form-label small mb-1" for="start">Start date</label>
+        <input class="form-control" type="date" id="start" name="start" value="<?= e($f['start']) ?>">
       </div>
       <div class="col-md-2">
-        <label class="form-label small mb-1">End date</label>
-        <input class="form-control" type="date" name="end" value="<?= e($f['end']) ?>">
+        <label class="form-label small mb-1" for="end">End date</label>
+        <input class="form-control" type="date" id="end" name="end" value="<?= e($f['end']) ?>">
       </div>
       <div class="col-md-2">
-        <label class="form-label small mb-1">Status</label>
-        <select class="form-select" name="status">
+        <label class="form-label small mb-1" for="status">Status</label>
+        <select class="form-select" id="status" name="status">
           <option value="">All</option>
           <?php foreach (JOB_STATUSES as $s): ?>
             <option value="<?= e($s) ?>" <?= $s === $f['status'] ? 'selected' : '' ?>><?= e($s) ?></option>
@@ -99,8 +99,8 @@ include __DIR__ . '/../includes/header.php';
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small mb-1">Technician</label>
-        <select class="form-select" name="technician">
+        <label class="form-label small mb-1" for="technician">Technician</label>
+        <select class="form-select" id="technician" name="technician">
           <option value="0">All</option>
           <?php foreach ($technicians as $t): ?>
             <option value="<?= (int) $t['id'] ?>" <?= $f['technician'] === (int) $t['id'] ? 'selected' : '' ?>><?= e($t['full_name']) ?></option>
@@ -108,8 +108,8 @@ include __DIR__ . '/../includes/header.php';
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small mb-1">Category</label>
-        <select class="form-select" name="category">
+        <label class="form-label small mb-1" for="category">Category</label>
+        <select class="form-select" id="category" name="category">
           <option value="">All</option>
           <?php foreach (SERVICE_CATEGORIES as $cat): ?>
             <option value="<?= e($cat) ?>" <?= $cat === $f['category'] ? 'selected' : '' ?>><?= e($cat) ?></option>
@@ -117,29 +117,29 @@ include __DIR__ . '/../includes/header.php';
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small mb-1">Priority</label>
-        <select class="form-select" name="priority">
+        <label class="form-label small mb-1" for="priority">Priority</label>
+        <select class="form-select" id="priority" name="priority">
           <option value="">All</option>
           <?php foreach (JOB_PRIORITIES as $p): ?>
             <option value="<?= e($p) ?>" <?= $p === $f['priority'] ? 'selected' : '' ?>><?= e($p) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-3">
-        <label class="form-label small mb-1">Customer</label>
-        <select class="form-select" name="customer">
+      <div class="col-md-4">
+        <label class="form-label small mb-1" for="customer">Customer</label>
+        <select class="form-select" id="customer" name="customer">
           <option value="0">All</option>
           <?php foreach ($customersList as $c): ?>
             <option value="<?= (int) $c['id'] ?>" <?= $f['customer'] === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-3">
-        <label class="form-label small mb-1">Vehicle plate</label>
-        <input class="form-control" type="text" name="plate" value="<?= e($f['plate']) ?>" placeholder="e.g. 8/24173 (vehicle history)">
+      <div class="col-md-4">
+        <label class="form-label small mb-1" for="plate">Vehicle plate</label>
+        <input class="form-control" type="text" id="plate" name="plate" value="<?= e($f['plate']) ?>" placeholder="e.g. 8/24173 (vehicle history)">
       </div>
-      <div class="col-auto">
-        <button class="btn btn-bb-orange" type="submit"><i class="bi bi-funnel"></i> Generate</button>
+      <div class="col-md-4">
+        <button class="btn btn-bb-orange" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Generate</button>
         <a class="btn btn-outline-secondary" href="<?= base_url('reports/index.php') ?>">Reset</a>
       </div>
     </form>
@@ -148,22 +148,22 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="row g-3 mb-3">
   <div class="col-6 col-md-4 col-xl-2">
-    <div class="card bb-stat bg-bb-dark"><div class="card-body py-3"><div class="fs-4 fw-bold"><?= $summary['total'] ?></div><div class="small">Total Job Cards</div></div></div>
+    <div class="card bb-stat bb-stat-accent-info"><div class="card-body py-3"><div class="bb-stat-value"><?= $summary['total'] ?></div><div class="bb-stat-label">Total Job Cards</div></div></div>
   </div>
   <div class="col-6 col-md-4 col-xl-2">
-    <div class="card bb-stat bg-success"><div class="card-body py-3"><div class="fs-4 fw-bold"><?= $summary['completed'] ?></div><div class="small">Completed</div></div></div>
+    <div class="card bb-stat bb-stat-accent-success"><div class="card-body py-3"><div class="bb-stat-value"><?= $summary['completed'] ?></div><div class="bb-stat-label">Completed</div></div></div>
   </div>
   <div class="col-6 col-md-4 col-xl-2">
-    <div class="card bb-stat bg-bb-orange"><div class="card-body py-3"><div class="fs-4 fw-bold"><?= $summary['in_progress'] ?></div><div class="small">In Progress</div></div></div>
+    <div class="card bb-stat bb-stat-accent-warning"><div class="card-body py-3"><div class="bb-stat-value"><?= $summary['in_progress'] ?></div><div class="bb-stat-label">In Progress</div></div></div>
   </div>
   <div class="col-6 col-md-4 col-xl-2">
-    <div class="card bb-stat" style="background:#6c757d;"><div class="card-body py-3"><div class="fs-4 fw-bold"><?= $summary['pending'] + $summary['assigned'] ?></div><div class="small">Pending / Assigned</div></div></div>
+    <div class="card bb-stat bb-stat-accent-info"><div class="card-body py-3"><div class="bb-stat-value"><?= $summary['pending'] + $summary['assigned'] ?></div><div class="bb-stat-label">Pending / Assigned</div></div></div>
   </div>
   <div class="col-6 col-md-4 col-xl-2">
-    <div class="card bb-stat" style="background:#212226;"><div class="card-body py-3"><div class="fs-4 fw-bold"><?= $summary['cancelled'] ?></div><div class="small">Cancelled</div></div></div>
+    <div class="card bb-stat bb-stat-accent-primary"><div class="card-body py-3"><div class="bb-stat-value"><?= $summary['cancelled'] ?></div><div class="bb-stat-label">Cancelled</div></div></div>
   </div>
   <div class="col-6 col-md-4 col-xl-2">
-    <div class="card bb-stat bg-bb-red"><div class="card-body py-3"><div class="fs-4 fw-bold"><?= $summary['high'] ?></div><div class="small">High Priority</div></div></div>
+    <div class="card bb-stat bb-stat-accent-primary"><div class="card-body py-3"><div class="bb-stat-value"><?= $summary['high'] ?></div><div class="bb-stat-label">High Priority</div></div></div>
   </div>
 </div>
 
@@ -183,11 +183,14 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="card mb-3">
-  <div class="card-header bg-white fw-bold">Detailed Job Card Report <span class="badge text-bg-secondary"><?= count($rows) ?></span></div>
+  <div class="card-header d-flex align-items-center gap-2">
+    <h2 class="h6 mb-0">Detailed Job Card Report</h2>
+    <span class="badge text-bg-secondary"><?= count($rows) ?></span>
+  </div>
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+        <thead>
           <tr>
             <th>Job #</th><th>Customer</th><th>Plate</th><th>Category</th><th>Technician</th>
             <th>Priority</th><th>Status</th><th>Created</th><th>Est. Completion</th><th>Completed</th>
@@ -195,7 +198,7 @@ include __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
           <?php if (!$rows): ?>
-            <tr><td colspan="10" class="text-center text-muted py-4">No job cards match the selected filters.</td></tr>
+            <tr><td colspan="10" class="bb-empty">No job cards match the selected filters.</td></tr>
           <?php endif; ?>
           <?php foreach ($rows as $row): ?>
             <tr>
@@ -220,14 +223,14 @@ include __DIR__ . '/../includes/header.php';
 <div class="row g-3">
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header bg-white fw-bold">Monthly Summary</div>
+      <div class="card-header"><h2 class="h6 mb-0">Monthly Summary</h2></div>
       <div class="card-body">
-        <?php if (!$monthly): ?><p class="text-muted mb-0">No data.</p><?php else: ?>
+        <?php if (!$monthly): ?><p class="bb-empty mb-0">No data.</p><?php else: ?>
           <table class="table table-sm align-middle mb-0">
-            <thead class="table-light"><tr><th>Month</th><th>Jobs</th><th>Completed</th><th>Cancelled</th></tr></thead>
+            <thead><tr><th>Month</th><th class="bb-num">Jobs</th><th class="bb-num">Completed</th><th class="bb-num">Cancelled</th></tr></thead>
             <tbody>
               <?php foreach ($monthly as $month => $m): ?>
-                <tr><td><?= e($month) ?></td><td><?= $m['total'] ?></td><td><?= $m['completed'] ?></td><td><?= $m['cancelled'] ?></td></tr>
+                <tr><td><?= e($month) ?></td><td class="bb-num"><?= $m['total'] ?></td><td class="bb-num"><?= $m['completed'] ?></td><td class="bb-num"><?= $m['cancelled'] ?></td></tr>
               <?php endforeach; ?>
             </tbody>
           </table>
@@ -237,14 +240,14 @@ include __DIR__ . '/../includes/header.php';
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header bg-white fw-bold">Technician Workload</div>
+      <div class="card-header"><h2 class="h6 mb-0">Technician Workload</h2></div>
       <div class="card-body">
-        <?php if (!$workload): ?><p class="text-muted mb-0">No data.</p><?php else: ?>
+        <?php if (!$workload): ?><p class="bb-empty mb-0">No data.</p><?php else: ?>
           <table class="table table-sm align-middle mb-0">
-            <thead class="table-light"><tr><th>Technician</th><th>Jobs</th><th>Active</th><th>Completed</th></tr></thead>
+            <thead><tr><th>Technician</th><th class="bb-num">Jobs</th><th class="bb-num">Active</th><th class="bb-num">Completed</th></tr></thead>
             <tbody>
               <?php foreach ($workload as $name => $w): ?>
-                <tr><td><?= e($name) ?></td><td><?= $w['total'] ?></td><td><?= $w['active'] ?></td><td><?= $w['completed'] ?></td></tr>
+                <tr><td><?= e($name) ?></td><td class="bb-num"><?= $w['total'] ?></td><td class="bb-num"><?= $w['active'] ?></td><td class="bb-num"><?= $w['completed'] ?></td></tr>
               <?php endforeach; ?>
             </tbody>
           </table>
@@ -254,14 +257,14 @@ include __DIR__ . '/../includes/header.php';
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header bg-white fw-bold">Service Categories</div>
+      <div class="card-header"><h2 class="h6 mb-0">Service Categories</h2></div>
       <div class="card-body">
-        <?php if (!$byCategory): ?><p class="text-muted mb-0">No data.</p><?php else: ?>
+        <?php if (!$byCategory): ?><p class="bb-empty mb-0">No data.</p><?php else: ?>
           <table class="table table-sm align-middle mb-0">
-            <thead class="table-light"><tr><th>Category</th><th>Jobs</th><th>Completed</th></tr></thead>
+            <thead><tr><th>Category</th><th class="bb-num">Jobs</th><th class="bb-num">Completed</th></tr></thead>
             <tbody>
               <?php foreach ($byCategory as $cat => $c): ?>
-                <tr><td><?= e($cat) ?></td><td><?= $c['total'] ?></td><td><?= $c['completed'] ?></td></tr>
+                <tr><td><?= e($cat) ?></td><td class="bb-num"><?= $c['total'] ?></td><td class="bb-num"><?= $c['completed'] ?></td></tr>
               <?php endforeach; ?>
             </tbody>
           </table>

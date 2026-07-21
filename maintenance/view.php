@@ -34,20 +34,20 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-  <h4 class="fw-bold mb-0"><i class="bi bi-tools bb-text-orange"></i> Maintenance Record #<?= (int) $record['id'] ?></h4>
+  <h1 class="bb-page-title"><i class="bi bi-tools bb-text-orange" aria-hidden="true"></i> Maintenance Record #<?= (int) $record['id'] ?></h1>
   <div class="d-flex gap-2 flex-wrap">
-    <a class="btn btn-bb-orange" href="<?= base_url('maintenance/form.php?id=' . (int) $record['id']) ?>"><i class="bi bi-pencil"></i> Edit</a>
-    <a class="btn btn-outline-secondary" href="<?= base_url('maintenance/index.php') ?>"><i class="bi bi-arrow-left"></i> Back</a>
+    <a class="btn btn-outline-secondary" href="<?= base_url('maintenance/form.php?id=' . (int) $record['id']) ?>"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+    <a class="btn btn-outline-secondary" href="<?= base_url('maintenance/index.php') ?>"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
   </div>
 </div>
 
 <div class="row g-3">
   <div class="col-lg-7">
     <div class="card">
-      <div class="card-header bg-white fw-bold">Record Details</div>
+      <div class="card-header"><h2 class="h6 mb-0">Record Details</h2></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-4">Description</dt><dd class="col-8" style="white-space: pre-line;"><?= e($record['description']) ?></dd>
+          <dt class="col-4">Description</dt><dd class="col-8 bb-prewrap"><?= e($record['description']) ?></dd>
           <dt class="col-4">Service Date</dt><dd class="col-8"><?= format_date($record['service_date']) ?></dd>
           <dt class="col-4">Cost (KWD)</dt><dd class="col-8"><?= $record['cost'] !== null ? e(number_format((float) $record['cost'], 3)) : '—' ?></dd>
           <dt class="col-4">Odometer (km)</dt><dd class="col-8"><?= $record['odometer_km'] !== null ? e(number_format((int) $record['odometer_km'])) : '—' ?></dd>
@@ -59,11 +59,11 @@ include __DIR__ . '/../includes/header.php';
   </div>
   <div class="col-lg-5">
     <div class="card mb-3">
-      <div class="card-header bg-white fw-bold">Vehicle</div>
+      <div class="card-header"><h2 class="h6 mb-0">Vehicle</h2></div>
       <div class="card-body">
         <dl class="row mb-0">
           <dt class="col-4">Plate</dt>
-          <dd class="col-8"><a class="text-decoration-none" href="<?= base_url('vehicles/view.php?id=' . (int) $record['vehicle_id']) ?>"><?= e($record['plate_number']) ?></a></dd>
+          <dd class="col-8"><a class="text-decoration-none bb-mono" href="<?= base_url('vehicles/view.php?id=' . (int) $record['vehicle_id']) ?>"><?= e($record['plate_number']) ?></a></dd>
           <dt class="col-4">Vehicle</dt><dd class="col-8"><?= e($record['make'] . ' ' . $record['model']) ?></dd>
           <dt class="col-4">Owner</dt>
           <dd class="col-8 mb-0"><a class="text-decoration-none" href="<?= base_url('customers/view.php?id=' . (int) $record['customer_id']) ?>"><?= e($record['customer_name']) ?></a></dd>
@@ -71,7 +71,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
     </div>
     <div class="card">
-      <div class="card-header bg-white fw-bold">Linked Job Card</div>
+      <div class="card-header"><h2 class="h6 mb-0">Linked Job Card</h2></div>
       <div class="card-body">
         <?php if ($record['job_id']): ?>
           <dl class="row mb-0">

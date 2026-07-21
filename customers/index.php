@@ -27,17 +27,18 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-  <h4 class="fw-bold mb-0">Customers <span class="badge text-bg-secondary fs-6"><?= count($customers) ?></span></h4>
-  <a class="btn btn-bb" href="<?= base_url('customers/form.php') ?>"><i class="bi bi-person-plus"></i> Add Customer</a>
+  <h1 class="bb-page-title">Customers <span class="badge text-bg-secondary align-middle"><?= count($customers) ?></span></h1>
+  <a class="btn btn-bb" href="<?= base_url('customers/form.php') ?>"><i class="bi bi-person-plus" aria-hidden="true"></i> Add Customer</a>
 </div>
 
 <div class="card mb-3">
   <div class="card-body py-3">
     <form class="row g-2" method="get" action="<?= base_url('customers/index.php') ?>">
       <div class="col-md-6 col-lg-5">
+        <label class="visually-hidden" for="customerSearch">Search customers</label>
         <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Search by name, phone, or email">
+          <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+          <input class="form-control" type="text" id="customerSearch" name="q" value="<?= e($q) ?>" placeholder="Search by name, phone, or email">
         </div>
       </div>
       <div class="col-auto">
@@ -61,7 +62,7 @@ include __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
           <?php if (!$customers): ?>
-            <tr><td colspan="6" class="text-center text-muted py-4">
+            <tr><td colspan="6" class="bb-empty">
               <?= $q !== '' ? 'No customers match your search.' : 'No customers yet. Click “Add Customer” to create the first one.' ?>
             </td></tr>
           <?php endif; ?>
@@ -72,15 +73,15 @@ include __DIR__ . '/../includes/header.php';
               <td><?= e($c['email'] ?? '') ?: '<span class="text-muted">—</span>' ?></td>
               <td><span class="badge text-bg-secondary"><?= (int) $c['vehicle_count'] ?></span></td>
               <td class="text-muted small"><?= format_date($c['created_at']) ?></td>
-              <td class="text-end text-nowrap">
-                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('customers/view.php?id=' . (int) $c['id']) ?>" title="View"><i class="bi bi-eye"></i></a>
-                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('customers/form.php?id=' . (int) $c['id']) ?>" title="Edit"><i class="bi bi-pencil"></i></a>
-                <form class="d-inline" method="post" action="<?= base_url('customers/delete.php') ?>">
+              <td class="bb-actions">
+                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('customers/view.php?id=' . (int) $c['id']) ?>" aria-label="View <?= e($c['name']) ?>" title="View"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('customers/form.php?id=' . (int) $c['id']) ?>" aria-label="Edit <?= e($c['name']) ?>" title="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                <form method="post" action="<?= base_url('customers/delete.php') ?>">
                   <?= csrf_field() ?>
                   <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
-                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete"
+                  <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Delete <?= e($c['name']) ?>" title="Delete"
                           data-confirm="Delete customer <?= e($c['name']) ?>? This will also delete their vehicles and job history.">
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </form>
               </td>

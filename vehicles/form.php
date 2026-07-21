@@ -119,20 +119,20 @@ $active = 'vehicles';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0"><?= $isEdit ? 'Edit Vehicle' : 'Register Vehicle' ?></h4>
-  <a class="btn btn-outline-secondary" href="<?= base_url('vehicles/index.php') ?>"><i class="bi bi-arrow-left"></i> Back to Registry</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="bb-page-title"><?= $isEdit ? 'Edit Vehicle' : 'Register Vehicle' ?></h1>
+  <a class="btn btn-outline-secondary" href="<?= base_url('vehicles/index.php') ?>"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Registry</a>
 </div>
 
 <?php if (!$customersList): ?>
-  <div class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle"></i> You need at least one customer before registering a vehicle.
+  <div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> You need at least one customer before registering a vehicle.
     <a class="alert-link" href="<?= base_url('customers/form.php') ?>">Add a customer first</a>.
   </div>
 <?php endif; ?>
 
 <?php if ($errors): ?>
-  <div class="alert alert-danger">
+  <div class="alert alert-danger" role="alert">
     <strong>Please fix the following:</strong>
     <ul class="mb-0">
       <?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?>
@@ -140,13 +140,13 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<div class="card" style="max-width: 820px;">
+<div class="card bb-form-narrow">
   <div class="card-body p-4">
     <form method="post" action="<?= base_url('vehicles/form.php' . ($isEdit ? '?id=' . $id : '')) ?>">
       <?= csrf_field() ?>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="customer_id">Owner (Customer) <span class="text-danger">*</span></label>
+          <label class="form-label" for="customer_id">Owner (Customer) <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="customer_id" name="customer_id" required <?= !$customersList ? 'disabled' : '' ?>>
             <option value="">— Select customer —</option>
             <?php foreach ($customersList as $c): ?>
@@ -157,15 +157,15 @@ include __DIR__ . '/../includes/header.php';
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="plate_number">Plate Number <span class="text-danger">*</span></label>
+          <label class="form-label" for="plate_number">Plate Number <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="plate_number" name="plate_number" value="<?= e($vehicle['plate_number']) ?>" maxlength="20" placeholder="e.g. 8/24173" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="make">Make <span class="text-danger">*</span></label>
+          <label class="form-label" for="make">Make <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="make" name="make" value="<?= e($vehicle['make']) ?>" maxlength="60" placeholder="e.g. Toyota" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="model">Model <span class="text-danger">*</span></label>
+          <label class="form-label" for="model">Model <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="model" name="model" value="<?= e($vehicle['model']) ?>" maxlength="60" placeholder="e.g. Land Cruiser" required>
         </div>
         <div class="col-md-4">
@@ -183,7 +183,7 @@ include __DIR__ . '/../includes/header.php';
       </div>
       <div class="mt-4 d-flex gap-2">
         <button class="btn btn-bb" type="submit" <?= !$customersList ? 'disabled' : '' ?>>
-          <i class="bi bi-check-lg"></i> <?= $isEdit ? 'Save Changes' : 'Register Vehicle' ?>
+          <i class="bi bi-check-lg" aria-hidden="true"></i> <?= $isEdit ? 'Save Changes' : 'Register Vehicle' ?>
         </button>
         <a class="btn btn-outline-secondary" href="<?= base_url('vehicles/index.php') ?>">Cancel</a>
       </div>

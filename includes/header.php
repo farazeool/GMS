@@ -14,11 +14,20 @@ if (!isset($page_title)) {
   <link href="<?= base_url('assets/css/style.css') ?>" rel="stylesheet">
 </head>
 <body>
+<div class="bb-topbar">
+  <button class="btn btn-sm btn-outline-light" id="bbSidebarToggle" type="button"
+          aria-controls="bbSidebar" aria-expanded="false" aria-label="Open navigation menu">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+  <span class="bb-brand"><i class="bi bi-fire" aria-hidden="true"></i> Bright<span>Blaze</span></span>
+</div>
 <div class="bb-layout d-flex">
   <?php include __DIR__ . '/sidebar.php'; ?>
-  <main class="bb-content flex-grow-1 p-4">
-    <button class="btn btn-dark d-md-none mb-3" id="bbSidebarToggle" type="button"><i class="bi bi-list"></i> Menu</button>
-    <?php foreach (get_flashes() as $flash): ?>
+  <button class="bb-backdrop" id="bbBackdrop" type="button" tabindex="-1" aria-label="Close navigation menu" hidden></button>
+  <main class="bb-content" id="bbMain">
+    <div class="bb-content-inner">
+    <?php $flashes = get_flashes(); ?>
+    <?php foreach ($flashes as $flash): ?>
       <div class="alert alert-<?= e($flash['type']) ?> alert-dismissible fade show" role="alert">
         <?= e($flash['message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

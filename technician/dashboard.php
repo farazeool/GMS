@@ -51,33 +51,45 @@ function render_job_list(array $jobs, string $empty): void
 ?>
 
 <div class="mb-4">
-  <h4 class="fw-bold mb-0">Technician Dashboard</h4>
-  <span class="text-muted small">Welcome, <?= e(current_user_name()) ?></span>
+  <h1 class="bb-page-title">Technician Dashboard</h1>
+  <span class="bb-page-subtitle">Welcome, <?= e(current_user_name()) ?></span>
 </div>
 
 <div class="row g-3">
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-inbox text-primary"></i> Assigned to Me <span class="badge text-bg-secondary"><?= count($assigned) ?></span></div>
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-inbox bb-text-orange" aria-hidden="true"></i>
+        <h2 class="h6 mb-0">Assigned to Me</h2>
+        <span class="badge bb-status-assigned ms-auto"><?= count($assigned) ?></span>
+      </div>
       <div class="card-body"><?php render_job_list($assigned, 'No newly assigned jobs.'); ?></div>
     </div>
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-wrench-adjustable bb-text-orange"></i> In Progress <span class="badge text-bg-secondary"><?= count($inProgress) ?></span></div>
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-wrench-adjustable bb-text-orange" aria-hidden="true"></i>
+        <h2 class="h6 mb-0">In Progress</h2>
+        <span class="badge bb-status-in-progress ms-auto"><?= count($inProgress) ?></span>
+      </div>
       <div class="card-body"><?php render_job_list($inProgress, 'No jobs in progress.'); ?></div>
     </div>
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-check-circle text-success"></i> Completed Today <span class="badge text-bg-secondary"><?= count($completedToday) ?></span></div>
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-check-circle bb-text-orange" aria-hidden="true"></i>
+        <h2 class="h6 mb-0">Completed Today</h2>
+        <span class="badge bb-status-completed ms-auto"><?= count($completedToday) ?></span>
+      </div>
       <div class="card-body"><?php render_job_list($completedToday, 'Nothing completed today yet.'); ?></div>
     </div>
   </div>
 </div>
 
-<div class="alert alert-light border mt-4 small mb-0">
-  <i class="bi bi-info-circle"></i> Open a job card to update its status and add service notes.
+<div class="alert alert-info border-0 mt-4 small mb-0" role="note">
+  <i class="bi bi-info-circle" aria-hidden="true"></i> Open a job card to update its status and add service notes.
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

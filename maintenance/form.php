@@ -72,13 +72,13 @@ $active = 'maintenance';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0">Edit Maintenance Record #<?= (int) $record['id'] ?></h4>
-  <a class="btn btn-outline-secondary" href="<?= base_url('maintenance/view.php?id=' . (int) $record['id']) ?>"><i class="bi bi-arrow-left"></i> Back to Record</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="bb-page-title">Edit Maintenance Record #<?= (int) $record['id'] ?></h1>
+  <a class="btn btn-outline-secondary" href="<?= base_url('maintenance/view.php?id=' . (int) $record['id']) ?>"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Record</a>
 </div>
 
 <?php if ($errors): ?>
-  <div class="alert alert-danger">
+  <div class="alert alert-danger bb-form-narrow" role="alert">
     <strong>Please fix the following:</strong>
     <ul class="mb-0">
       <?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?>
@@ -86,10 +86,10 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<div class="card" style="max-width: 720px;">
+<div class="card bb-form-narrow">
   <div class="card-body p-4">
-    <div class="alert alert-light border small">
-      <i class="bi bi-link-45deg"></i>
+    <div class="alert alert-info border-0 small" role="note">
+      <i class="bi bi-link-45deg" aria-hidden="true"></i>
       Vehicle: <strong><?= e($record['plate_number'] . ' — ' . $record['make'] . ' ' . $record['model']) ?></strong>
       · Job card: <strong><?= e($record['job_number'] ?? 'No longer exists') ?></strong>
       <span class="d-block text-muted">Vehicle and job card linkage cannot be changed. Records are created automatically from completed job cards.</span>
@@ -98,11 +98,11 @@ include __DIR__ . '/../includes/header.php';
       <?= csrf_field() ?>
       <div class="row g-3">
         <div class="col-12">
-          <label class="form-label" for="description">Description <span class="text-danger">*</span></label>
+          <label class="form-label" for="description">Description <span class="bb-required" aria-hidden="true">*</span></label>
           <textarea class="form-control" id="description" name="description" rows="3" maxlength="255" required><?= e($record['description']) ?></textarea>
         </div>
         <div class="col-md-4">
-          <label class="form-label" for="service_date">Service Date <span class="text-danger">*</span></label>
+          <label class="form-label" for="service_date">Service Date <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="date" id="service_date" name="service_date" value="<?= e((string) $record['service_date']) ?>" required>
         </div>
         <div class="col-md-4">
@@ -115,7 +115,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
       </div>
       <div class="mt-4 d-flex gap-2">
-        <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg"></i> Save Changes</button>
+        <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> Save Changes</button>
         <a class="btn btn-outline-secondary" href="<?= base_url('maintenance/view.php?id=' . (int) $record['id']) ?>">Cancel</a>
       </div>
     </form>

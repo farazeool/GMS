@@ -63,13 +63,13 @@ $active = 'customers';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0"><?= $isEdit ? 'Edit Customer' : 'Add Customer' ?></h4>
-  <a class="btn btn-outline-secondary" href="<?= base_url('customers/index.php') ?>"><i class="bi bi-arrow-left"></i> Back to Customers</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="bb-page-title"><?= $isEdit ? 'Edit Customer' : 'Add Customer' ?></h1>
+  <a class="btn btn-outline-secondary" href="<?= base_url('customers/index.php') ?>"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Customers</a>
 </div>
 
 <?php if ($errors): ?>
-  <div class="alert alert-danger">
+  <div class="alert alert-danger bb-form-narrow" role="alert">
     <strong>Please fix the following:</strong>
     <ul class="mb-0">
       <?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?>
@@ -77,17 +77,17 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<div class="card" style="max-width: 720px;">
+<div class="card bb-form-narrow">
   <div class="card-body p-4">
     <form method="post" action="<?= base_url('customers/form.php' . ($isEdit ? '?id=' . $id : '')) ?>">
       <?= csrf_field() ?>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
+          <label class="form-label" for="name">Full Name <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="name" name="name" value="<?= e($customer['name']) ?>" maxlength="120" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="phone">Phone Number <span class="text-danger">*</span></label>
+          <label class="form-label" for="phone">Phone Number <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="phone" name="phone" value="<?= e($customer['phone']) ?>" maxlength="20" placeholder="+965 XXXX XXXX" required>
         </div>
         <div class="col-md-6">
@@ -100,7 +100,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
       </div>
       <div class="mt-4 d-flex gap-2">
-        <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg"></i> <?= $isEdit ? 'Save Changes' : 'Add Customer' ?></button>
+        <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> <?= $isEdit ? 'Save Changes' : 'Add Customer' ?></button>
         <a class="btn btn-outline-secondary" href="<?= base_url('customers/index.php') ?>">Cancel</a>
       </div>
     </form>

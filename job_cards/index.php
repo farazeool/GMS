@@ -79,55 +79,55 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-  <h4 class="fw-bold mb-0"><?= is_admin() ? 'Job Cards' : 'My Job Cards' ?> <span class="badge text-bg-secondary fs-6"><?= count($jobs) ?></span></h4>
+  <h1 class="bb-page-title mb-0"><?= is_admin() ? 'Job Cards' : 'My Job Cards' ?> <span class="badge text-bg-secondary align-middle"><?= count($jobs) ?></span></h1>
   <?php if (is_admin()): ?>
-    <a class="btn btn-bb" href="<?= base_url('job_cards/form.php') ?>"><i class="bi bi-plus-lg"></i> New Job Card</a>
+    <a class="btn btn-bb" href="<?= base_url('job_cards/form.php') ?>"><i class="bi bi-plus-lg" aria-hidden="true"></i> New Job Card</a>
   <?php endif; ?>
 </div>
 
 <div class="card mb-3">
   <div class="card-body py-3">
     <form class="row g-2 align-items-end" method="get" action="<?= base_url('job_cards/index.php') ?>">
-      <div class="col-md-4 col-lg-3">
-        <label class="form-label small mb-1">Search</label>
-        <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Job #, customer, plate, technician">
+      <div class="col-12 col-md-4">
+        <label class="form-label small mb-1" for="filter-q">Search</label>
+        <input class="form-control" type="text" id="filter-q" name="q" value="<?= e($q) ?>" placeholder="Job #, customer, plate, technician">
       </div>
-      <div class="col-md-2">
-        <label class="form-label small mb-1">Status</label>
-        <select class="form-select" name="status">
+      <div class="col-6 col-md-4">
+        <label class="form-label small mb-1" for="filter-status">Status</label>
+        <select class="form-select" id="filter-status" name="status">
           <option value="">All</option>
           <?php foreach (JOB_STATUSES as $s): ?>
             <option value="<?= e($s) ?>" <?= $s === $status ? 'selected' : '' ?>><?= e($s) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-2">
-        <label class="form-label small mb-1">Priority</label>
-        <select class="form-select" name="priority">
+      <div class="col-6 col-md-4">
+        <label class="form-label small mb-1" for="filter-priority">Priority</label>
+        <select class="form-select" id="filter-priority" name="priority">
           <option value="">All</option>
           <?php foreach (JOB_PRIORITIES as $p): ?>
             <option value="<?= e($p) ?>" <?= $p === $priority ? 'selected' : '' ?>><?= e($p) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-2 col-lg-2">
-        <label class="form-label small mb-1">Category</label>
-        <select class="form-select" name="category">
+      <div class="col-6 col-md-4">
+        <label class="form-label small mb-1" for="filter-category">Category</label>
+        <select class="form-select" id="filter-category" name="category">
           <option value="">All</option>
           <?php foreach (SERVICE_CATEGORIES as $cat): ?>
             <option value="<?= e($cat) ?>" <?= $cat === $category ? 'selected' : '' ?>><?= e($cat) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-2 col-lg-1">
-        <label class="form-label small mb-1">From</label>
-        <input class="form-control" type="date" name="date_from" value="<?= e($dateFrom) ?>">
+      <div class="col-6 col-md-3">
+        <label class="form-label small mb-1" for="filter-date-from">From</label>
+        <input class="form-control" type="date" id="filter-date-from" name="date_from" value="<?= e($dateFrom) ?>">
       </div>
-      <div class="col-md-2 col-lg-1">
-        <label class="form-label small mb-1">To</label>
-        <input class="form-control" type="date" name="date_to" value="<?= e($dateTo) ?>">
+      <div class="col-6 col-md-3">
+        <label class="form-label small mb-1" for="filter-date-to">To</label>
+        <input class="form-control" type="date" id="filter-date-to" name="date_to" value="<?= e($dateTo) ?>">
       </div>
-      <div class="col-auto">
+      <div class="col-12 col-md-2">
         <button class="btn btn-bb-orange" type="submit">Filter</button>
         <a class="btn btn-outline-secondary" href="<?= base_url('job_cards/index.php') ?>">Clear</a>
       </div>
@@ -147,7 +147,7 @@ include __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
           <?php if (!$jobs): ?>
-            <tr><td colspan="9" class="text-center text-muted py-4">No job cards match your search or filters.</td></tr>
+            <tr><td colspan="9" class="bb-empty">No job cards match your search or filters.</td></tr>
           <?php endif; ?>
           <?php foreach ($jobs as $job): ?>
             <tr>
@@ -159,16 +159,16 @@ include __DIR__ . '/../includes/header.php';
               <td><?= priority_badge($job['priority']) ?></td>
               <td><?= status_badge($job['status']) ?></td>
               <td class="text-muted small"><?= format_date($job['created_at']) ?></td>
-              <td class="text-end text-nowrap">
-                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('job_cards/view.php?id=' . (int) $job['id']) ?>" title="View"><i class="bi bi-eye"></i></a>
+              <td class="bb-actions">
+                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('job_cards/view.php?id=' . (int) $job['id']) ?>" title="View" aria-label="View job card <?= e($job['job_number']) ?>"><i class="bi bi-eye" aria-hidden="true"></i></a>
                 <?php if (is_admin()): ?>
-                  <a class="btn btn-sm btn-outline-primary" href="<?= base_url('job_cards/form.php?id=' . (int) $job['id']) ?>" title="Edit"><i class="bi bi-pencil"></i></a>
-                  <form class="d-inline" method="post" action="<?= base_url('job_cards/delete.php') ?>">
+                  <a class="btn btn-sm btn-outline-primary" href="<?= base_url('job_cards/form.php?id=' . (int) $job['id']) ?>" title="Edit" aria-label="Edit job card <?= e($job['job_number']) ?>"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                  <form method="post" action="<?= base_url('job_cards/delete.php') ?>">
                     <?= csrf_field() ?>
                     <input type="hidden" name="id" value="<?= (int) $job['id'] ?>">
-                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete"
+                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete" aria-label="Delete job card <?= e($job['job_number']) ?>"
                             data-confirm="Delete job card <?= e($job['job_number']) ?>? Its service notes will also be deleted.">
-                      <i class="bi bi-trash"></i>
+                      <i class="bi bi-trash" aria-hidden="true"></i>
                     </button>
                   </form>
                 <?php endif; ?>

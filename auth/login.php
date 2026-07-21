@@ -52,31 +52,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="<?= base_url('assets/css/style.css') ?>" rel="stylesheet">
 </head>
 <body class="bb-login-page d-flex align-items-center justify-content-center">
-  <div class="card bb-login-card shadow-lg">
+  <div class="card bb-login-card">
     <div class="card-body p-4 p-md-5">
-      <div class="bb-brand bb-brand-dark text-center mb-4">
-        <i class="bi bi-fire"></i> Bright<span>Blaze</span>
+      <h1 class="bb-brand bb-brand-dark text-center mb-4 h4">
+        <i class="bi bi-fire" aria-hidden="true"></i> Bright<span>Blaze</span>
         <small class="d-block">Garage Management &amp; Job Card System</small>
-      </div>
+      </h1>
       <?php if ($error !== ''): ?>
-        <div class="alert alert-danger py-2"><?= e($error) ?></div>
+        <div class="alert alert-danger py-2" role="alert"><?= e($error) ?></div>
       <?php endif; ?>
       <form method="post" action="<?= base_url('auth/login.php') ?>" novalidate>
         <div class="mb-3">
           <label class="form-label" for="username">Username</label>
           <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input class="form-control" type="text" id="username" name="username" value="<?= e($_POST['username'] ?? '') ?>" required autofocus>
+            <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+            <input class="form-control" type="text" id="username" name="username" autocomplete="username" value="<?= e($_POST['username'] ?? '') ?>" required autofocus>
           </div>
         </div>
         <div class="mb-4">
           <label class="form-label" for="password">Password</label>
           <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-            <input class="form-control" type="password" id="password" name="password" required>
+            <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+            <input class="form-control" type="password" id="password" name="password" autocomplete="current-password" required>
           </div>
         </div>
-        <button class="btn btn-bb w-100" type="submit"><i class="bi bi-box-arrow-in-right"></i> Sign in</button>
+        <button class="btn btn-bb w-100" type="submit"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Sign in</button>
       </form>
     </div>
   </div>

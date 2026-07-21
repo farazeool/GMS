@@ -109,13 +109,13 @@ $active = 'users';
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="fw-bold mb-0"><?= $isEdit ? 'Edit User' : 'Add User' ?></h4>
-  <a class="btn btn-outline-secondary" href="<?= base_url('users/index.php') ?>"><i class="bi bi-arrow-left"></i> Back to Users</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <h1 class="bb-page-title"><?= $isEdit ? 'Edit User' : 'Add User' ?></h1>
+  <a class="btn btn-outline-secondary" href="<?= base_url('users/index.php') ?>"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Users</a>
 </div>
 
 <?php if ($errors): ?>
-  <div class="alert alert-danger">
+  <div class="alert alert-danger bb-form-narrow" role="alert">
     <strong>Please fix the following:</strong>
     <ul class="mb-0">
       <?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?>
@@ -123,17 +123,17 @@ include __DIR__ . '/../includes/header.php';
   </div>
 <?php endif; ?>
 
-<div class="card" style="max-width: 760px;">
+<div class="card bb-form-narrow">
   <div class="card-body p-4">
     <form method="post" action="<?= base_url('users/form.php' . ($isEdit ? '?id=' . $id : '')) ?>" autocomplete="off">
       <?= csrf_field() ?>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="full_name">Full Name <span class="text-danger">*</span></label>
+          <label class="form-label" for="full_name">Full Name <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="full_name" name="full_name" value="<?= e($user['full_name']) ?>" maxlength="120" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="username">Username <span class="text-danger">*</span></label>
+          <label class="form-label" for="username">Username <span class="bb-required" aria-hidden="true">*</span></label>
           <input class="form-control" type="text" id="username" name="username" value="<?= e($user['username']) ?>" maxlength="80" required>
         </div>
         <div class="col-md-6">
@@ -145,7 +145,7 @@ include __DIR__ . '/../includes/header.php';
           <input class="form-control" type="text" id="phone" name="phone" value="<?= e($user['phone'] ?? '') ?>" maxlength="20" placeholder="+965 XXXX XXXX">
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="role_id">Role <span class="text-danger">*</span></label>
+          <label class="form-label" for="role_id">Role <span class="bb-required" aria-hidden="true">*</span></label>
           <select class="form-select" id="role_id" name="role_id" required>
             <option value="">— Select role —</option>
             <?php foreach ($roles as $r): ?>
@@ -154,7 +154,7 @@ include __DIR__ . '/../includes/header.php';
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="password"><?= $isEdit ? 'New Password' : 'Password' ?> <?= $isEdit ? '' : '<span class="text-danger">*</span>' ?></label>
+          <label class="form-label" for="password"><?= $isEdit ? 'New Password' : 'Password' ?> <?= $isEdit ? '' : '<span class="bb-required" aria-hidden="true">*</span>' ?></label>
           <input class="form-control" type="password" id="password" name="password" minlength="8" autocomplete="new-password"
                  <?= $isEdit ? 'placeholder="Leave blank to keep current password"' : 'required' ?>>
           <div class="form-text">Minimum 8 characters. Stored securely as a bcrypt hash.</div>
@@ -171,7 +171,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
       </div>
       <div class="mt-4 d-flex gap-2">
-        <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg"></i> <?= $isEdit ? 'Save Changes' : 'Create User' ?></button>
+        <button class="btn btn-bb" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> <?= $isEdit ? 'Save Changes' : 'Create User' ?></button>
         <a class="btn btn-outline-secondary" href="<?= base_url('users/index.php') ?>">Cancel</a>
       </div>
     </form>

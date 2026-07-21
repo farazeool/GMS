@@ -6,16 +6,19 @@
 function bb_nav_item(string $key, string $href, string $icon, string $label): void
 {
     global $active;
-    $class = (isset($active) && $active === $key) ? ' active' : '';
-    echo '<a class="nav-link' . $class . '" href="' . base_url($href) . '"><i class="bi ' . $icon . '"></i> ' . $label . '</a>' . PHP_EOL;
+    $isActive = (isset($active) && $active === $key);
+    $class = $isActive ? ' active' : '';
+    $current = $isActive ? ' aria-current="page"' : '';
+    echo '<a class="nav-link' . $class . '" href="' . base_url($href) . '"' . $current . '>'
+        . '<i class="bi ' . $icon . '" aria-hidden="true"></i> ' . $label . '</a>' . PHP_EOL;
 }
 ?>
-<aside class="bb-sidebar d-flex flex-column p-3">
+<aside class="bb-sidebar d-flex flex-column p-3" id="bbSidebar">
   <div class="bb-brand mb-4">
-    <i class="bi bi-fire"></i> Bright<span>Blaze</span>
+    <i class="bi bi-fire" aria-hidden="true"></i> Bright<span>Blaze</span>
     <small class="d-block">Garage Management</small>
   </div>
-  <nav class="nav flex-column gap-1">
+  <nav class="nav flex-column gap-1" aria-label="Main navigation">
     <?php if (is_admin()): ?>
       <?php
       bb_nav_item('dashboard', 'admin/dashboard.php', 'bi-speedometer2', 'Dashboard');
@@ -40,7 +43,7 @@ function bb_nav_item(string $key, string $href, string $icon, string $label): vo
       <span class="bb-role text-uppercase"><?= e(current_role()) ?></span>
     </div>
     <a class="btn btn-sm btn-outline-light mt-2 w-100" href="<?= base_url('auth/logout.php') ?>">
-      <i class="bi bi-box-arrow-right"></i> Sign out
+      <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign out
     </a>
   </div>
 </aside>

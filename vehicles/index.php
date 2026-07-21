@@ -28,17 +28,18 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-  <h4 class="fw-bold mb-0">Vehicle Registry <span class="badge text-bg-secondary fs-6"><?= count($vehicles) ?></span></h4>
-  <a class="btn btn-bb" href="<?= base_url('vehicles/form.php') ?>"><i class="bi bi-plus-lg"></i> Register Vehicle</a>
+  <h1 class="bb-page-title">Vehicle Registry <span class="badge text-bg-secondary align-middle"><?= count($vehicles) ?></span></h1>
+  <a class="btn btn-bb" href="<?= base_url('vehicles/form.php') ?>"><i class="bi bi-plus-lg" aria-hidden="true"></i> Register Vehicle</a>
 </div>
 
 <div class="card mb-3">
   <div class="card-body py-3">
     <form class="row g-2" method="get" action="<?= base_url('vehicles/index.php') ?>">
       <div class="col-md-6 col-lg-5">
+        <label class="visually-hidden" for="q">Search vehicles</label>
         <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input class="form-control" type="text" name="q" value="<?= e($q) ?>" placeholder="Search by plate, customer, make, or model">
+          <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+          <input class="form-control" type="text" id="q" name="q" value="<?= e($q) ?>" placeholder="Search by plate, customer, make, or model">
         </div>
       </div>
       <div class="col-auto">
@@ -62,7 +63,7 @@ include __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
           <?php if (!$vehicles): ?>
-            <tr><td colspan="7" class="text-center text-muted py-4">
+            <tr><td colspan="7" class="bb-empty">
               <?= $q !== '' ? 'No vehicles match your search.' : 'No vehicles registered yet. Click “Register Vehicle” to add the first one.' ?>
             </td></tr>
           <?php endif; ?>
@@ -74,15 +75,15 @@ include __DIR__ . '/../includes/header.php';
               <td><?= e($v['color'] ?? '') ?: '—' ?></td>
               <td><a class="text-decoration-none" href="<?= base_url('customers/view.php?id=' . (int) $v['customer_id']) ?>"><?= e($v['customer_name']) ?></a></td>
               <td class="text-muted small"><?= format_date($v['created_at']) ?></td>
-              <td class="text-end text-nowrap">
-                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('vehicles/view.php?id=' . (int) $v['id']) ?>" title="View"><i class="bi bi-eye"></i></a>
-                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('vehicles/form.php?id=' . (int) $v['id']) ?>" title="Edit"><i class="bi bi-pencil"></i></a>
-                <form class="d-inline" method="post" action="<?= base_url('vehicles/delete.php') ?>">
+              <td class="bb-actions">
+                <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('vehicles/view.php?id=' . (int) $v['id']) ?>" title="View" aria-label="View <?= e($v['plate_number']) ?>"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('vehicles/form.php?id=' . (int) $v['id']) ?>" title="Edit" aria-label="Edit <?= e($v['plate_number']) ?>"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                <form method="post" action="<?= base_url('vehicles/delete.php') ?>">
                   <?= csrf_field() ?>
                   <input type="hidden" name="id" value="<?= (int) $v['id'] ?>">
-                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete"
+                  <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete" aria-label="Delete <?= e($v['plate_number']) ?>"
                           data-confirm="Delete vehicle <?= e($v['plate_number']) ?>? Its job history and maintenance records will also be deleted.">
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </form>
               </td>

@@ -29,49 +29,52 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
   <div>
-    <h4 class="fw-bold mb-0">Admin Dashboard</h4>
-    <span class="text-muted small">Welcome back, <?= e(current_user_name()) ?></span>
+    <h1 class="bb-page-title">Admin Dashboard</h1>
+    <span class="bb-page-subtitle">Welcome back, <?= e(current_user_name()) ?></span>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    <a class="btn btn-bb" href="<?= base_url('job_cards/form.php') ?>"><i class="bi bi-plus-lg"></i> New Job Card</a>
-    <a class="btn btn-bb-orange" href="<?= base_url('vehicles/form.php') ?>"><i class="bi bi-car-front"></i> Register Vehicle</a>
-    <a class="btn btn-dark" href="<?= base_url('reports/index.php') ?>"><i class="bi bi-graph-up"></i> Generate Report</a>
+    <a class="btn btn-bb" href="<?= base_url('job_cards/form.php') ?>"><i class="bi bi-plus-lg" aria-hidden="true"></i> New Job Card</a>
+    <a class="btn btn-outline-secondary" href="<?= base_url('vehicles/form.php') ?>"><i class="bi bi-car-front" aria-hidden="true"></i> Register Vehicle</a>
+    <a class="btn btn-outline-secondary" href="<?= base_url('reports/index.php') ?>"><i class="bi bi-graph-up" aria-hidden="true"></i> Reports</a>
   </div>
 </div>
 
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3">
-    <div class="card bb-stat bg-bb-dark"><div class="card-body d-flex justify-content-between align-items-center">
-      <div><div class="fs-3 fw-bold"><?= $totalVehicles ?></div><div class="small">Total Vehicles</div></div>
-      <i class="bi bi-car-front"></i>
+    <div class="card bb-stat bb-stat-accent-info"><div class="card-body d-flex justify-content-between align-items-center">
+      <div><div class="bb-stat-value"><?= $totalVehicles ?></div><div class="bb-stat-label">Total Vehicles</div></div>
+      <i class="bi bi-car-front bb-stat-icon" aria-hidden="true"></i>
     </div></div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="card bb-stat bg-bb-orange"><div class="card-body d-flex justify-content-between align-items-center">
-      <div><div class="fs-3 fw-bold"><?= $activeJobs ?></div><div class="small">Active Jobs</div></div>
-      <i class="bi bi-wrench-adjustable"></i>
+    <div class="card bb-stat bb-stat-accent-warning"><div class="card-body d-flex justify-content-between align-items-center">
+      <div><div class="bb-stat-value"><?= $activeJobs ?></div><div class="bb-stat-label">Active Jobs</div></div>
+      <i class="bi bi-wrench-adjustable bb-stat-icon" aria-hidden="true"></i>
     </div></div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="card bb-stat bg-success"><div class="card-body d-flex justify-content-between align-items-center">
-      <div><div class="fs-3 fw-bold"><?= $completed ?></div><div class="small">Completed Services</div></div>
-      <i class="bi bi-check-circle"></i>
+    <div class="card bb-stat bb-stat-accent-success"><div class="card-body d-flex justify-content-between align-items-center">
+      <div><div class="bb-stat-value"><?= $completed ?></div><div class="bb-stat-label">Completed Services</div></div>
+      <i class="bi bi-check-circle bb-stat-icon" aria-hidden="true"></i>
     </div></div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="card bb-stat bg-bb-red"><div class="card-body d-flex justify-content-between align-items-center">
-      <div><div class="fs-3 fw-bold"><?= $pending ?></div><div class="small">Pending Job Cards</div></div>
-      <i class="bi bi-hourglass-split"></i>
+    <div class="card bb-stat bb-stat-accent-primary"><div class="card-body d-flex justify-content-between align-items-center">
+      <div><div class="bb-stat-value"><?= $pending ?></div><div class="bb-stat-label">Pending Job Cards</div></div>
+      <i class="bi bi-hourglass-split bb-stat-icon" aria-hidden="true"></i>
     </div></div>
   </div>
 </div>
 
 <div class="card">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-card-checklist bb-text-orange" aria-hidden="true"></i>
+    <h2 class="h6 mb-0">Recent Job Cards</h2>
+  </div>
   <div class="card-body">
-    <h6 class="fw-bold mb-3"><i class="bi bi-card-checklist text-danger"></i> Recent Job Cards</h6>
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+        <thead>
           <tr>
             <th>Job #</th><th>Customer</th><th>Vehicle</th><th>Category</th>
             <th>Technician</th><th>Priority</th><th>Status</th><th>Created</th>
@@ -79,7 +82,7 @@ include __DIR__ . '/../includes/header.php';
         </thead>
         <tbody>
           <?php if (!$recentJobs): ?>
-            <tr><td colspan="8" class="text-center text-muted py-4">No job cards yet.</td></tr>
+            <tr><td colspan="8" class="bb-empty">No job cards yet.</td></tr>
           <?php endif; ?>
           <?php foreach ($recentJobs as $job): ?>
             <tr>

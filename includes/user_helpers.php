@@ -39,6 +39,6 @@ function role_badge(string $role): string
 function active_badge(int $active): string
 {
     return $active
-        ? '<span class="badge text-bg-success">Active</span>'
-        : '<span class="badge text-bg-secondary">Inactive</span>';
+        ? '<span class="badge bb-state-active">Active</span>'
+        : '<span class="badge bb-state-inactive">Inactive</span>';
 }
