@@ -9,8 +9,9 @@ $active = 'customers';
 
 $q = trim($_GET['q'] ?? '');
 
-$sql = "SELECT c.*, (SELECT COUNT(*) FROM vehicles v WHERE v.customer_id = c.id) AS vehicle_count
-        FROM customers c";
+$sql = "SELECT c.*, (SELECT COUNT(*) FROM vehicles v WHERE v.customer_id = c.id AND v.deleted_at IS NULL) AS vehicle_count
+        FROM customers c
+        WHERE c.deleted_at IS NULL";
 $params = [];
 if ($q !== '') {
     $sql .= ' WHERE c.name LIKE ? OR c.phone LIKE ? OR c.email LIKE ?';

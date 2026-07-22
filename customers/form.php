@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -46,11 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = db()->prepare('UPDATE customers SET name = ?, phone = ?, email = ?, address = ? WHERE id = ?');
             $stmt->execute([$customer['name'], $customer['phone'], $customer['email'] !== '' ? $customer['email'] : null, $customer['address'] !== '' ? $customer['address'] : null, $id]);
             set_flash('success', 'Customer updated successfully.');
+            track_change('customers', 'update', $id);
         } else {
             $stmt = db()->prepare('INSERT INTO customers (name, phone, email, address) VALUES (?, ?, ?, ?)');
             $stmt->execute([$customer['name'], $customer['phone'], $customer['email'] !== '' ? $customer['email'] : null, $customer['address'] !== '' ? $customer['address'] : null]);
             $id = (int) db()->lastInsertId();
             set_flash('success', 'Customer added successfully.');
+            track_change('customers', 'create', $id);
         }
         header('Location: ' . base_url('customers/view.php?id=' . $id));
         exit;

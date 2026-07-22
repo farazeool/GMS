@@ -28,6 +28,15 @@ const SYNC_MODES = [
     'online_sync' => 'Online Sync Enabled',
 ];
 
+const SYNC_STATUS_MAP = [
+    'not_configured' => 'Not Configured',
+    'local_only'     => 'Local Only',
+    'online'         => 'Online',
+    'syncing'        => 'Syncing...',
+    'error'          => 'Sync Error',
+    'conflict'       => 'Has Conflicts',
+];
+
 /**
  * All settings merged over defaults. Falls back to defaults if the
  * settings table does not exist yet (migration not run).

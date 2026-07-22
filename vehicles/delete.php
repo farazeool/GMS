@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -20,9 +21,11 @@ $vehicle = $stmt->fetch();
 if (!$vehicle) {
     set_flash('danger', 'Vehicle not found.');
 } else {
-    $stmt = db()->prepare('DELETE FROM vehicles WHERE id = ?');
-    $stmt->execute([$id]);
-    set_flash('success', 'Vehicle "' . $vehicle['plate_number'] . '" deleted, including its job history and maintenance records.');
+    // Soft delete with sync tracking
+    $stmt = db()->prepare('UPDATE vehicles SET deleted_at = NOW(), sync_status = ? WHERE id = ?');
+    $stmt->execute(['pending', $id]);
+    track_change('vehicles', 'delete', $id);
+    set_flash('success', 'Vehicle "' . $vehicle['plate_number'] . '" deleted (soft delete with sync pending).');
 }
 
 header('Location: ' . base_url('vehicles/index.php'));

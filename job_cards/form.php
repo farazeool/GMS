@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 require_once __DIR__ . '/../includes/job_helpers.php';
 
 require_role('admin');
@@ -137,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             set_flash('success', 'Job card updated successfully.');
+            track_change('job_cards', 'update', $id);
         } else {
             $jobNumber = generate_job_number();
             $stmt = db()->prepare(
@@ -150,6 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $id = (int) db()->lastInsertId();
             set_flash('success', 'Job card ' . $jobNumber . ' created successfully.');
+            track_change('job_cards', 'create', $id);
         }
 
         header('Location: ' . base_url('job_cards/view.php?id=' . $id));

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/job_helpers.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_login();
 
@@ -38,6 +39,7 @@ $error = apply_status_change($job, $newStatus);
 if ($error !== null) {
     set_flash('danger', $error);
 } else {
+    track_change('job_cards', 'update', $id);
     set_flash('success', 'Status updated to ' . $newStatus . '.');
 }
 

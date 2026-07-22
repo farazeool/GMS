@@ -27,7 +27,8 @@ function bb_nav_item(string $key, string $href, string $icon, string $label): vo
       bb_nav_item('job_cards', 'job_cards/index.php', 'bi-card-checklist', 'Job Cards');
       bb_nav_item('maintenance', 'maintenance/index.php', 'bi-tools', 'Maintenance Records');
       bb_nav_item('reports', 'reports/index.php', 'bi-graph-up', 'Reports');
-      bb_nav_item('users', 'users/index.php', 'bi-person-gear', 'Users &amp; Roles');
+      bb_nav_item('sync', 'admin/sync.php', 'bi-cloud', 'Sync Dashboard');
+      bb_nav_item('users', 'users/index.php', 'bi-person-gear', 'Users & Roles');
       bb_nav_item('settings', 'admin/settings.php', 'bi-gear', 'System Settings');
       ?>
     <?php else: ?>

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/sync_helpers.php';
 
 require_role('admin');
 
@@ -61,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id,
         ]);
         set_flash('success', 'Maintenance record updated successfully.');
+        track_change('maintenance_records', 'update', $id);
         header('Location: ' . base_url('maintenance/view.php?id=' . $id));
         exit;
     }

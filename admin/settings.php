@@ -153,7 +153,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <div class="card-body">
           <div class="alert alert-info border-0 small" role="note">
-            <i class="bi bi-info-circle" aria-hidden="true"></i> Online backup/sync is planned for a future update. These settings prepare the system for it; no data leaves this installation yet.
+            <i class="bi bi-info-circle" aria-hidden="true"></i> Configure your cloud endpoint to enable automatic synchronization. <a href="<?= base_url('admin/sync.php') ?>" class="alert-link">View sync dashboard</a>.
           </div>
           <div class="row g-3">
             <div class="col-md-6">
