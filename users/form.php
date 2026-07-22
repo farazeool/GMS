@@ -67,8 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$isEdit && $password === '') {
         $errors[] = 'Password is required for a new user.';
     }
-    if ($password !== '' && strlen($password) < 8) {
-        $errors[] = 'Password must be at least 8 characters long.';
+    if ($password !== '') {
+        $policyErrors = validate_password_policy($password);
+        foreach ($policyErrors as $policyError) {
+            $errors[] = $policyError;
+        }
     }
 
     // Lockout protection: never lose the last active administrator.

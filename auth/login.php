@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/security.php';
 
 if (is_logged_in()) {
     header('Location: ' . base_url(is_admin() ? 'admin/dashboard.php' : 'technician/dashboard.php'));
@@ -15,6 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($username === '' || $password === '') {
         $error = 'Please enter both username and password.';
+    } elseif (is_locked_out($username)) {
+        $sec = security_settings();
+        $minutes = $sec['lockout_duration'];
+        log_security_event('auth', 'Login blocked: account locked out', ['username' => $username]);
+        $error = "Too many failed attempts. Please try again in {$minutes} minutes.";
     } else {
         $stmt = db()->prepare(
             'SELECT u.id, u.username, u.full_name, u.password_hash, r.name AS role_name
@@ -27,16 +33,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
+            $policyErrors = validate_password_policy($password);
+            if (!empty($policyErrors)) {
+                log_security_event('auth', 'Login with weak password', ['username' => $username]);
+            }
+
             session_regenerate_id(true);
-            $_SESSION['user_id']   = (int) $user['id'];
-            $_SESSION['username']  = $user['username'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['role']      = $user['role_name'];
+            $_SESSION['user_id']      = (int) $user['id'];
+            $_SESSION['username']     = $user['username'];
+            $_SESSION['full_name']    = $user['full_name'];
+            $_SESSION['role']         = $user['role_name'];
+            $_SESSION['created_at']   = time();
+            $_SESSION['last_activity'] = time();
+
+            clear_failed_logins($username);
+            log_security_event('auth', 'Login successful', ['username' => $username, 'user_id' => (int) $user['id']]);
 
             header('Location: ' . base_url($user['role_name'] === 'admin' ? 'admin/dashboard.php' : 'technician/dashboard.php'));
             exit;
         }
 
+        record_failed_login($username);
+        log_security_event('auth', 'Login failed: invalid credentials', ['username' => $username]);
         $error = 'Invalid username or password.';
     }
 }

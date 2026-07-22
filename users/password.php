@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($password !== $confirm) {
         $errors[] = 'Passwords do not match.';
     }
+    foreach (validate_password_policy($password) as $policyError) {
+        $errors[] = $policyError;
+    }
 
     if (!$errors) {
         $stmt = db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?');

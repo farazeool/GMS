@@ -13,10 +13,10 @@ log_report('csv_export', $f);
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="brightblaze_report_' . date('Ymd_His') . '.csv"');
 header('Pragma: no-cache');
+header('X-Content-Type-Options: nosniff');
 
 $out = fopen('php://output', 'w');
 
-// UTF-8 BOM so Excel opens the file correctly.
 fwrite($out, "\xEF\xBB\xBF");
 
 fputcsv($out, [
@@ -25,12 +25,25 @@ fputcsv($out, [
 ]);
 
 foreach ($rows as $row) {
+    $technician = $row['technician_name'] ?? 'Unassigned';
+    if (preg_match('/^\s*[=\-+@\t\r\n]/', $technician)) {
+        $technician = "'" . $technician;
+    }
+    $customer = $row['customer_name'] ?? '';
+    if (preg_match('/^\s*[=\-+@\t\r\n]/', $customer)) {
+        $customer = "'" . $customer;
+    }
+    $plate = $row['plate_number'] ?? '';
+    if (preg_match('/^\s*[=\-+@\t\r\n]/', $plate)) {
+        $plate = "'" . $plate;
+    }
+
     fputcsv($out, [
         $row['job_number'],
-        $row['customer_name'],
-        $row['plate_number'],
+        $customer,
+        $plate,
         $row['service_category'],
-        $row['technician_name'] ?? 'Unassigned',
+        $technician,
         $row['priority'],
         $row['status'],
         date('Y-m-d H:i', strtotime($row['created_at'])),

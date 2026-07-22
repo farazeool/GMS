@@ -96,17 +96,20 @@ function env_bool(string $key, bool $default = false): bool
     return in_array(strtolower((string) $value), ['true', '1', 'yes', 'on'], true);
 }
 
-/**
- * Parse an environment variable as an integer.
- */
-function env_int(string $key, int $default = 0): int
-{
-    $value = env($key);
-    if ($value === null) {
-        return $default;
-    }
-    return (int) $value;
-}
+  /**
+   * Parse an environment variable as an integer.
+   */
+  function env_int(string $key, int $default = 0): int
+  {
+      $value = env($key);
+      if ($value === null) {
+          return $default;
+      }
+      if (!ctype_digit((string) $value) && !((string) $value === '-1' || (string) $value === '-0')) {
+          return $default;
+      }
+      return (int) $value;
+  }
 
 /**
  * Validate that required configuration values are present.
@@ -130,18 +133,34 @@ function env_require(string ...$keys): void
     }
 }
 
-/**
- * Validate production configuration.
- * Safe defaults are only allowed when APP_ENV=local.
- */
-function env_require_production(): void
-{
-    $appEnv = env('APP_ENV', 'local');
-    $safeEnvs = ['local', 'testing', 'dev', 'development'];
-    if (!in_array($appEnv, $safeEnvs, true)) {
-        env_require('APP_KEY', 'APP_URL', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS');
-    }
-}
+  /**
+   * Validate production configuration.
+   * Safe defaults are only allowed when APP_ENV=local.
+   */
+  function env_require_production(): void
+  {
+      $appEnv = env('APP_ENV', 'local');
+      $safeEnvs = ['local', 'testing', 'dev', 'development'];
+      if (!in_array($appEnv, $safeEnvs, true)) {
+          env_require('APP_KEY', 'APP_URL', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS');
+          
+          // Validate APP_URL scheme in production
+          $appUrl = env('APP_URL', '');
+          if (!preg_match('/^https?:\/\//i', $appUrl)) {
+              throw new RuntimeException('APP_URL must start with http:// or https:// in production.');
+          }
+          
+          // Validate DB connection parameters
+          $dbHost = env('DB_HOST', '');
+          $dbPort = env('DB_PORT', '3306');
+          if ($dbHost === '') {
+              throw new RuntimeException('DB_HOST must not be empty in production.');
+          }
+          if (!ctype_digit($dbPort) || (int) $dbPort < 1 || (int) $dbPort > 65535) {
+              throw new RuntimeException('DB_PORT must be a valid TCP port (1-65535).');
+          }
+      }
+  }
 
 // Load environment on include
 load_env();

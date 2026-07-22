@@ -11,6 +11,7 @@ require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/../includes/error_handler.php';
 
 define('APP_NAME', 'BrightBlaze Garage');
+define('APP_VERSION', '4.0.0');
 
 // Determine BASE_URL from APP_URL or fall back to /brightblaze/
 $appUrl  = env('APP_URL', 'http://localhost/brightblaze');
@@ -27,8 +28,22 @@ date_default_timezone_set($timezone);
 env_require_production();
 
 require_once __DIR__ . '/../includes/datetime.php';
+require_once __DIR__ . '/../includes/security.php';
 
 require_once __DIR__ . '/database.php';
+
+// Maintenance mode check (skip for health checks, CLI, and auth pages)
+$isCli  = php_sapi_name() === 'cli' || php_sapi_name() === 'phpdbg';
+$isAuth = str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/auth/');
+$isHealth = str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/health.php');
+
+if (!$isCli && !$isAuth && !$isHealth && maintenance_mode()) {
+    if (is_logged_in() && is_admin()) {
+        // Allow admin access during maintenance
+    } else {
+        render_maintenance_page();
+    }
+}
 
 /**
  * Build an absolute URL path inside the application.

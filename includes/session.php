@@ -4,7 +4,25 @@
  * Include config/config.php before this file.
  */
 
+require_once __DIR__ . '/security.php';
+
+// Configure secure session parameters before starting the session.
 if (session_status() === PHP_SESSION_NONE) {
+    $sec = security_settings();
+
+    $cookiePath = parse_url(BASE_URL, PHP_URL_PATH) ?: '/';
+    $cookieDomain = '';
+
+    session_set_cookie_params([
+        'lifetime' => $sec['session_lifetime'] * 60,
+        'path'     => $cookiePath,
+        'domain'   => $cookieDomain,
+        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+
+    session_name('BBSESSION');
     session_start();
 }
 
@@ -13,7 +31,28 @@ require_once __DIR__ . '/csrf.php';
 
 function is_logged_in(): bool
 {
-    return isset($_SESSION['user_id']);
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+
+    $sec = security_settings();
+
+    $idleTimeout = $sec['session_idle_timeout'] * 60;
+    $lifetime = $sec['session_lifetime'] * 60;
+
+    if ($idleTimeout > 0 && isset($_SESSION['last_activity']) && (time() - (int) $_SESSION['last_activity']) > $idleTimeout) {
+        session_destroy();
+        return false;
+    }
+
+    if ($lifetime > 0 && isset($_SESSION['created_at']) && (time() - (int) $_SESSION['created_at']) > $lifetime) {
+        session_destroy();
+        return false;
+    }
+
+    $_SESSION['last_activity'] = time();
+
+    return true;
 }
 
 function current_user_id(): int
