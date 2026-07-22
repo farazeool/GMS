@@ -1,0 +1,26 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: brightblaze_garage
+    volumes:
+      - ./database/brightblaze.sql:/docker-entrypoint-initdb.d/01-brightblaze.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  web:
+    image: php:8.2-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html/brightblaze:rw
+    command: >
+      bash -c "docker-php-ext-install pdo pdo_mysql mysqli >/dev/null 2>&1 &&
+               apache2-foreground"

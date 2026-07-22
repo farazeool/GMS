@@ -29,8 +29,20 @@ env_require_production();
 
 require_once __DIR__ . '/../includes/datetime.php';
 require_once __DIR__ . '/../includes/security.php';
+require_once __DIR__ . '/../includes/maintenance.php';
 
 require_once __DIR__ . '/database.php';
+
+// Send HTTP security headers before any output
+$isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+if ($isHttps) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https://*.githubusercontent.com; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self'; frame-ancestors 'none';");
 
 // Maintenance mode check (skip for health checks, CLI, and auth pages)
 $isCli  = php_sapi_name() === 'cli' || php_sapi_name() === 'phpdbg';

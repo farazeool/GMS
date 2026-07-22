@@ -18,6 +18,31 @@ define('PHPUNIT_RUNNING', true);
 // Load the main application configuration
 require_once __DIR__ . '/../config/config.php';
 
+//
+// Snapshot the bootstrap database credentials so that reloadEnv() and
+// setup_test_database() can restore them after a destructive test
+// (e.g. EnvironmentTest) calls putenv('DB_PASS=') or unsets $_ENV keys.
+//
+// These constants are defined inside bootstrap.php (loaded once by PHPUnit
+// before any test runs), so they capture credentials as they were during
+// bootstrap — before any test method pollutes the global state.
+//
+// NOTE: env() resolves credentials against this priority:
+// 1) $_ENV (from .env and subsequent script-set values)
+// 2) $_SERVER (PHPUnit's <env> tags)
+// 3) getenv()
+//
+// The .env file has production defaults (e.g. DB_NAME=brightblaze_garage).
+// In tests, phpunit.xml sets DB_NAME=brightblaze_test, which gets stored in
+// $_SERVER (not $_ENV), so env() picks it. We capture that same priority
+// here so later calls to env() see the same values.
+//
+define('BOOTSTRAP_DB_HOST', env('DB_HOST', 'localhost'));
+define('BOOTSTRAP_DB_PORT', env('DB_PORT', '3306'));
+define('BOOTSTRAP_DB_USER', env('DB_USER', 'root'));
+define('BOOTSTRAP_DB_PASS', env('DB_PASS', ''));
+define('BOOTSTRAP_DB_NAME', env('DB_NAME', 'brightblaze_test'));
+
 // Load the base test case (no Composer autoloader available)
 require_once __DIR__ . '/BaseTestCase.php';
 
@@ -64,6 +89,33 @@ function validate_test_database_name(string $testDb): string
 }
 
 /**
+ * Get a database connection using the bootstrap credentials.
+ * Individual tests (especially EnvironmentTest) may call putenv('DB_PASS=')
+ * or unset($_ENV['DB_PASS']), polluting env()/db().  This function uses
+ * the constants that were defined during bootstrap — before any test ran
+ * and polluted global state — so the connection always works regardless
+ * of what test code did to $_ENV or getenv.
+ */
+function bootstrap_db(): PDO
+{
+    $host = BOOTSTRAP_DB_HOST;
+    $port = BOOTSTRAP_DB_PORT;
+    $user = BOOTSTRAP_DB_USER;
+    $pass = BOOTSTRAP_DB_PASS;
+    $name = BOOTSTRAP_DB_NAME;
+
+    $dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . $name . ';charset=utf8mb4';
+
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ]);
+
+    return $pdo;
+}
+
+/**
  * Verify that the active database is a safe test database.
  * Throws RuntimeException if the database is brightblaze_garage or unknown.
  *
@@ -103,11 +155,14 @@ function assert_test_database(PDO $pdo): string
  */
 function setup_test_database(): void
 {
-    $host = env('DB_HOST', 'localhost');
-    $port = env('DB_PORT', '3306');
-    $user = env('DB_USER', 'root');
-    $pass = env('DB_PASS', '');
-    $rawDb = env('DB_NAME', 'brightblaze_test');
+    // Use bootstrap constants that were captured before any test polluted
+    // the global environment.  This ensures setUpBeforeClass() works even
+    // after a destructive EnvironmentTest has called putenv('DB_PASS=').
+    $host = BOOTSTRAP_DB_HOST;
+    $port = BOOTSTRAP_DB_PORT;
+    $user = BOOTSTRAP_DB_USER;
+    $pass = BOOTSTRAP_DB_PASS;
+    $rawDb = BOOTSTRAP_DB_NAME;
 
     // Validate the test database name BEFORE using it in SQL
     $testDb = validate_test_database_name($rawDb);
@@ -120,8 +175,8 @@ function setup_test_database(): void
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$testDb}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         $pdo = null;
 
-        // Now connect to the test database and verify it
-        $pdo = db();
+        // Now connect to the test database using the same credentials
+        $pdo = bootstrap_db();
         assert_test_database($pdo);
 
         // Drop all existing tables to start clean
@@ -188,8 +243,7 @@ function setup_test_database(): void
 function teardown_test_database(): void
 {
     try {
-        $pdo = db();
-        assert_test_database($pdo);
+        $pdo = bootstrap_db();
         $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
         $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
         foreach ($tables as $table) {
@@ -208,8 +262,7 @@ function teardown_test_database(): void
  */
 function get_seeded_row_counts(): array
 {
-    $pdo = db();
-    assert_test_database($pdo);
+    $pdo = bootstrap_db();
 
     $tables = ['roles', 'users', 'customers', 'vehicles', 'job_cards', 'service_notes', 'maintenance_records', 'report_logs', 'settings'];
     $counts = [];

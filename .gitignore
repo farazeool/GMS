@@ -9,12 +9,16 @@ storage/logs/*
 !storage/logs/.gitkeep
 
 # Backups and temporary files
+database/backups/
 *.bak
 *.swp
 *.swo
 *~
 .DS_Store
 Thumbs.db
+
+# Local test configuration
+phpunit.xml
 
 # Local secrets and IDE
 .idea/
@@ -33,3 +37,7 @@ composer.lock
 
 # Generated test database
 tests/_data/testdb.sqlite
+
+# Session artifacts
+.qoder/
+.stage3-recipe.md

@@ -35,16 +35,20 @@ abstract class BaseTestCase extends TestCase
      */
     protected function reloadEnv(): void
     {
-        // Reset the loaded flag by reloading env.php
-        // The static $loaded flag in load_env() prevents double-loading,
-        // so we directly set $_ENV values for testing
+        // Restore from bootstrap snapshot so that individual
+        // EnvironmentTest tests that called putenv('DB_PASS=')
+        // or unset($_ENV['DB_PASS']) don't pollute subsequent
+        // test classes (e.g. MigrationTest).
+        //
+        // The constants are defined in tests/bootstrap.php after
+        // env.php / config.php have been loaded.
         $_ENV['APP_ENV'] = 'testing';
         $_ENV['APP_DEBUG'] = 'false';
         $_ENV['APP_TIMEZONE'] = 'Asia/Kuwait';
-        $_ENV['DB_HOST'] = 'localhost';
-        $_ENV['DB_PORT'] = '3306';
-        $_ENV['DB_NAME'] = 'brightblaze_test';
-        $_ENV['DB_USER'] = 'root';
-        $_ENV['DB_PASS'] = '';
+        $_ENV['DB_HOST'] = defined('BOOTSTRAP_DB_HOST') ? BOOTSTRAP_DB_HOST : 'localhost';
+        $_ENV['DB_PORT'] = defined('BOOTSTRAP_DB_PORT') ? BOOTSTRAP_DB_PORT : '3306';
+        $_ENV['DB_NAME'] = defined('BOOTSTRAP_DB_NAME') ? BOOTSTRAP_DB_NAME : 'brightblaze_test';
+        $_ENV['DB_USER'] = defined('BOOTSTRAP_DB_USER') ? BOOTSTRAP_DB_USER : 'root';
+        $_ENV['DB_PASS'] = defined('BOOTSTRAP_DB_PASS') ? BOOTSTRAP_DB_PASS : '';
     }
 }

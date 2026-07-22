@@ -71,7 +71,9 @@ function backup_database(string $outputPath): bool
                 return '`' . $mysqli->real_escape_string($c) . '`';
             }, array_keys($data));
             $vals = array_map(function ($v) use ($mysqli) {
-                return "'" . $mysqli->real_escape_string($v) . "'";
+                return $v === null
+                    ? 'NULL'
+                    : "'" . $mysqli->real_escape_string($v) . "'";
             }, array_values($data));
             fwrite($fp, "INSERT INTO `{$table}` (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $vals) . ");" . PHP_EOL);
         }
@@ -87,10 +89,13 @@ function backup_database(string $outputPath): bool
 
 $output = $argv[1] ?? dirname(__DIR__) . '/database/backups/brightblaze_' . date('Ymd_His') . '.sql';
 
-if (backup_database($output)) {
-    echo "Backup created: {$output}" . PHP_EOL;
-    exit(0);
-} else {
-    echo "Backup failed." . PHP_EOL;
-    exit(1);
+// Guard: skip CLI execution when loaded for inclusion
+if (!defined('BACKUP_INCLUDE_ONLY') || !BACKUP_INCLUDE_ONLY) {
+    if (backup_database($output)) {
+        echo "Backup created: {$output}" . PHP_EOL;
+        exit(0);
+    } else {
+        echo "Backup failed." . PHP_EOL;
+        exit(1);
+    }
 }

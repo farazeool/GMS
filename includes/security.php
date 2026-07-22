@@ -41,7 +41,7 @@ function security_settings(): array
     ];
 
     try {
-        $dbSettings = get_settings();
+        $dbSettings = function_exists('get_settings') ? get_settings() : [];
         foreach ($settings as $key => $default) {
             $dbKey = $key;
             if (isset($dbSettings[$dbKey]) && $dbSettings[$dbKey] !== '') {
