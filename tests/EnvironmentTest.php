@@ -139,8 +139,11 @@ class EnvironmentTest extends BaseTestCase
     public function test_env_require_production_includes_app_url(): void
     {
         $_ENV['APP_ENV'] = 'production';
-        unset($_ENV['APP_URL']);
-        unset($_ENV['APP_KEY'], $_ENV['DB_PASS']);
+        unset($_ENV['APP_URL'], $_SERVER['APP_URL']);
+        putenv('APP_URL=');
+        unset($_ENV['APP_KEY'], $_ENV['DB_PASS'], $_SERVER['APP_KEY'], $_SERVER['DB_PASS']);
+        putenv('APP_KEY=');
+        putenv('DB_PASS=');
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('APP_URL');

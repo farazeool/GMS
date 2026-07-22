@@ -1,0 +1,17 @@
+{
+  "name": "brightblaze/gms",
+  "description": "BrightBlaze Garage Management System",
+  "type": "project",
+  "require": {},
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "BrightBlaze\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}
