@@ -41,7 +41,9 @@ define('BOOTSTRAP_DB_HOST', env('DB_HOST', 'localhost'));
 define('BOOTSTRAP_DB_PORT', env('DB_PORT', '3306'));
 define('BOOTSTRAP_DB_USER', env('DB_USER', 'root'));
 define('BOOTSTRAP_DB_PASS', env('DB_PASS', ''));
-define('BOOTSTRAP_DB_NAME', env('DB_NAME', 'brightblaze_test'));
+// Force test database name — this is exclusively a test bootstrap,
+// always connect to brightblaze_test regardless of .env or environment.
+define('BOOTSTRAP_DB_NAME', 'brightblaze_test');
 
 // Load the base test case (no Composer autoloader available)
 require_once __DIR__ . '/BaseTestCase.php';
@@ -229,6 +231,10 @@ function setup_test_database(): void
                 PRIMARY KEY (`version`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ");
+
+                // Apply Stage 6 commercial core tables for testing
+        require_once __DIR__ . "/../bin/setup_test_schema.php";
+        create_commercial_test_tables($pdo);
     } catch (PDOException $e) {
         throw new RuntimeException('Test database setup failed: ' . $e->getMessage());
     } catch (RuntimeException $e) {

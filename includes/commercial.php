@@ -9,23 +9,31 @@
 function generate_invoice_number(): string
 {
     $prefix = 'INV-' . date('Y') . '-';
-    $last = db()->query("SELECT invoice_number FROM invoices WHERE invoice_number LIKE '$prefix%' ORDER BY invoice_number DESC LIMIT 1")->fetchColumn();
+    $stmt = db()->prepare("SELECT invoice_number FROM invoices WHERE invoice_number LIKE ? ORDER BY invoice_number DESC LIMIT 1");
+    $stmt->execute([$prefix . '%']);
+    $last = $stmt->fetchColumn();
     $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
     // Collision check
     do {
         $num = sprintf('%s%04d', $prefix, $seq++);
-    } while (db()->prepare('SELECT COUNT(*) FROM invoices WHERE invoice_number=?')->execute([$num])->fetchColumn() > 0);
+        $stmt = db()->prepare('SELECT COUNT(*) FROM invoices WHERE invoice_number=?');
+        $stmt->execute([$num]);
+    } while ($stmt->fetchColumn() > 0);
     return $num;
 }
 
 function generate_quotation_number(): string
 {
     $prefix = 'QTN-' . date('Y') . '-';
-    $last = db()->query("SELECT quotation_number FROM quotations WHERE quotation_number LIKE '$prefix%' ORDER BY quotation_number DESC LIMIT 1")->fetchColumn();
+    $stmt = db()->prepare("SELECT quotation_number FROM quotations WHERE quotation_number LIKE ? ORDER BY quotation_number DESC LIMIT 1");
+    $stmt->execute([$prefix . '%']);
+    $last = $stmt->fetchColumn();
     $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
     do {
         $num = sprintf('%s%04d', $prefix, $seq++);
-    } while (db()->prepare('SELECT COUNT(*) FROM quotations WHERE quotation_number=?')->execute([$num])->fetchColumn() > 0);
+        $stmt = db()->prepare('SELECT COUNT(*) FROM quotations WHERE quotation_number=?');
+        $stmt->execute([$num]);
+    } while ($stmt->fetchColumn() > 0);
     return $num;
 }
 
@@ -182,11 +190,38 @@ function global_search(string $query): array
     $like = '%' . $query . '%';
     $results = [];
 
-    $results['customers'] = db()->prepare("SELECT id, name, phone, email FROM customers WHERE deleted_at IS NULL AND (name LIKE ? OR phone LIKE ? OR email LIKE ?) LIMIT 10")->execute([$like, $like, $like])->fetchAll(PDO::FETCH_ASSOC);
-    $results['vehicles'] = db()->prepare("SELECT v.id, v.plate_number, v.make, v.model, v.vin, c.name AS customer FROM vehicles v JOIN customers c ON c.id=v.customer_id WHERE v.deleted_at IS NULL AND (v.plate_number LIKE ? OR v.vin LIKE ? OR v.make LIKE ? OR v.model LIKE ?) LIMIT 10")->execute([$like, $like, $like, $like])->fetchAll(PDO::FETCH_ASSOC);
-    $results['job_cards'] = db()->prepare("SELECT jc.id, jc.job_number, c.name AS customer, jc.status FROM job_cards jc JOIN customers c ON c.id=jc.customer_id WHERE jc.deleted_at IS NULL AND (jc.job_number LIKE ? OR jc.service_category LIKE ?) LIMIT 10")->execute([$like, $like])->fetchAll(PDO::FETCH_ASSOC);
-    $results['invoices'] = db()->prepare("SELECT i.id, i.invoice_number, c.name AS customer, i.total, i.status FROM invoices i JOIN customers c ON c.id=i.customer_id WHERE i.deleted_at IS NULL AND i.invoice_number LIKE ? LIMIT 10")->execute([$like])->fetchAll(PDO::FETCH_ASSOC);
-    $results['inventory'] = db()->prepare("SELECT id, sku, name, barcode, quantity FROM inventory_items WHERE deleted_at IS NULL AND (sku LIKE ? OR name LIKE ? OR barcode LIKE ?) LIMIT 10")->execute([$like, $like, $like])->fetchAll(PDO::FETCH_ASSOC);
+    // Search queries are wrapped in try-catch since some tables may not
+    // have the deleted_at column (Stage 5 sync migrations not yet applied).
+    // Without deleted_at, we search all records.
+    try {
+        $stmt = db()->prepare("SELECT id, name, phone, email FROM customers WHERE (name LIKE ? OR phone LIKE ? OR email LIKE ?) LIMIT 10");
+        $stmt->execute([$like, $like, $like]);
+        $results['customers'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) { $results['customers'] = []; }
+
+    try {
+        $stmt = db()->prepare("SELECT v.id, v.plate_number, v.make, v.model, v.vin, c.name AS customer FROM vehicles v JOIN customers c ON c.id=v.customer_id WHERE (v.plate_number LIKE ? OR v.vin LIKE ? OR v.make LIKE ? OR v.model LIKE ?) LIMIT 10");
+        $stmt->execute([$like, $like, $like, $like]);
+        $results['vehicles'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) { $results['vehicles'] = []; }
+
+    try {
+        $stmt = db()->prepare("SELECT jc.id, jc.job_number, c.name AS customer, jc.status FROM job_cards jc JOIN customers c ON c.id=jc.customer_id WHERE (jc.job_number LIKE ? OR jc.service_category LIKE ?) LIMIT 10");
+        $stmt->execute([$like, $like]);
+        $results['job_cards'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) { $results['job_cards'] = []; }
+
+    try {
+        $stmt = db()->prepare("SELECT i.id, i.invoice_number, c.name AS customer, i.total, i.status FROM invoices i JOIN customers c ON c.id=i.customer_id WHERE i.invoice_number LIKE ? LIMIT 10");
+        $stmt->execute([$like]);
+        $results['invoices'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) { $results['invoices'] = []; }
+
+    try {
+        $stmt = db()->prepare("SELECT id, sku, name, barcode, quantity FROM inventory_items WHERE (sku LIKE ? OR name LIKE ? OR barcode LIKE ?) LIMIT 10");
+        $stmt->execute([$like, $like, $like]);
+        $results['inventory'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) { $results['inventory'] = []; }
 
     return $results;
 }
